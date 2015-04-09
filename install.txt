@@ -1,0 +1,8 @@
+RUN THESE COMMANDS TO INSTALL PYGAME/BOX2D
+
+
+brew install mercurial
+brew install sdl sdl_image sdl_mixer sdl_ttf portmidi
+sudo pip install hg+http://bitbucket.org/pygame/pygame
+brew install swig
+sudo pip install Box2D
