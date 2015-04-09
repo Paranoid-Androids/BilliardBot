@@ -2,13 +2,15 @@
 # -*- coding: utf-8 -*-
 """
 An attempt at some simple, self-contained pygame-based examples.
-
-Example 01
+Example 02
 
 In short:
-One static body: a big polygon to represent the ground
-One dynamic body: a rotated big polygon
-And some drawing code to get you going.
+One static body:
+    + One fixture: big polygon to represent the ground
+Two dynamic bodies:
+    + One fixture: a polygon
+    + One fixture: a circle
+And some drawing code that extends the shape classes.
 
 kne
 """
@@ -37,22 +39,39 @@ world=world(gravity=(0,-10),doSleep=True)
 
 # And a static body to hold the ground shape
 ground_body=world.CreateStaticBody(
-    position=(0,1),
-    shapes=polygonShape(box=(50,5)),
+    position=(0,0),
+    shapes=polygonShape(box=(50,1)),
     )
 
-# Create a dynamic body
-dynamic_body=world.CreateDynamicBody(position=(10,15), angle=15)
+# Create a couple dynamic bodies
+body=world.CreateDynamicBody(position=(20,45))
+circle=body.CreateCircleFixture(radius=0.5, density=1, friction=0.3)
 
-# And add a box fixture onto it (with a nonzero density, so it will move)
-box=dynamic_body.CreatePolygonFixture(box=(2,1), density=1, friction=0.3)
+body=world.CreateDynamicBody(position=(30,45), angle=15)
+box=body.CreatePolygonFixture(box=(2,1), density=1, friction=0.3)
 
 colors = {
     staticBody  : (255,255,255,255),
     dynamicBody : (127,127,127,255),
 }
 
+# Let's play with extending the shape classes to draw for us.
+def my_draw_polygon(polygon, body, fixture):
+    vertices=[(body.transform*v)*PPM for v in polygon.vertices]
+    vertices=[(v[0], SCREEN_HEIGHT-v[1]) for v in vertices]
+    pygame.draw.polygon(screen, colors[body.type], vertices)
+polygonShape.draw=my_draw_polygon
+
+def my_draw_circle(circle, body, fixture):
+    position=body.transform*circle.pos*PPM
+    position=(position[0], SCREEN_HEIGHT-position[1])
+    pygame.draw.circle(screen, colors[body.type], [int(x) for x in position], int(circle.radius*PPM))
+    # Note: Python 3.x will enforce that pygame get the integers it requests,
+    #       and it will not convert from float.
+circleShape.draw=my_draw_circle
+
 # --- main game loop ---
+
 running=True
 while running:
     # Check the event queue
@@ -63,34 +82,11 @@ while running:
 
     screen.fill((0,0,0,0))
     # Draw the world
-    for body in (ground_body, dynamic_body): # or: world.bodies
-        # The body gives us the position and angle of its shapes
+    for body in world.bodies:
         for fixture in body.fixtures:
-            # The fixture holds information like density and friction,
-            # and also the shape.
-            shape=fixture.shape
-            
-            # Naively assume that this is a polygon shape. (not good normally!)
-            # We take the body's transform and multiply it with each 
-            # vertex, and then convert from meters to pixels with the scale
-            # factor. 
-            vertices=[(body.transform*v)*PPM for v in shape.vertices]
-
-            # But wait! It's upside-down! Pygame and Box2D orient their
-            # axes in different ways. Box2D is just like how you learned
-            # in high school, with positive x and y directions going
-            # right and up. Pygame, on the other hand, increases in the
-            # right and downward directions. This means we must flip
-            # the y components.
-            vertices=[(v[0], SCREEN_HEIGHT-v[1]) for v in vertices]
-
-            pygame.draw.polygon(screen, colors[body.type], vertices)
+            fixture.shape.draw(body, fixture)
 
     # Make Box2D simulate the physics of our world for one step.
-    # Instruct the world to perform a single step of simulation. It is
-    # generally best to keep the time step and iterations fixed.
-    # See the manual (Section "Simulating the World") for further discussion
-    # on these parameters and their implications.
     world.Step(TIME_STEP, 10, 10)
 
     # Flip the screen and try to keep at the target FPS
