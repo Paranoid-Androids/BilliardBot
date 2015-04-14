@@ -59,10 +59,20 @@ define(function(require) {
     GUI.SPEED_THRESHOLD = 0.1;
 
     GUI.BALL_OPTIONS = {
-        frictionAir: 0.015,
+        frictionAir: 0.015, 
         friction: 0.0001,
-        restitution: 0.92
-    };
+        restitution: 0.92,
+        render: {
+            lineWidth: 1,
+            strokeStyle: "transparent",
+            fillStyle: "white"
+            }
+        };
+
+    var BALL_COLORS = ["yellow", "blue", "red", "purple", "orange", "green", "maroon", "black",
+        "yellow", "blue", "red", "purple", "orange", "green", "maroon"];
+    var SOLID_BALLS = [1, 2, 3, 4, 5, 6, 7];
+    var STRIPE_BALLS = [9, 10, 11, 12, 13, 14, 15];
 
     var Matter = require('third_party/matter');
     var waitingForShot = true;
@@ -88,7 +98,8 @@ define(function(require) {
                 options: {
                     width: GUI.WIDTH,
                     height: GUI.HEIGHT,
-                    showAngleIndicator: true
+                    wireframes:false,
+                    background: "#31B94D"
                 }
             }
         });
@@ -96,6 +107,7 @@ define(function(require) {
         //create the cue ball
         this.cue = Bodies.circle(GUI.WIDTH / 4, GUI.HEIGHT / 2, GUI.BALL_RADIUS,
             GUI.BALL_OPTIONS);
+        this.cue.label = "cue";
         World.add(this.engine.world, this.cue);
 
         //create the rack
@@ -147,7 +159,6 @@ define(function(require) {
 
     GUI.prototype.getCuePosition = function() {
         var allBodies = Composite.allBodies(this.engine.world);
-        console.log(allBodies[0].position);
         return allBodies[0].position;
     }
 
@@ -172,21 +183,68 @@ define(function(require) {
      * Sets up the default rack.
      */
     GUI.prototype.setupRack = function() {
-        var x = 3 * GUI.WIDTH / 4;
+        var x = (3 * GUI.WIDTH / 4);
         var y = GUI.HEIGHT / 2;
         var ballsPerRow = 1;
+        var ballList = this.createBallList();
+        var currentBall = 0;
 
         for (var i = 0; i < 5; i++) {
             var currentY = y
             for (var j = 0; j < ballsPerRow; j++) {
-                World.add(this.engine.world,
-                    Bodies.circle(x, currentY, GUI.BALL_RADIUS, GUI.BALL_OPTIONS));
-                currentY += GUI.BALL_RADIUS * 2;
+                var ball = Bodies.circle(x, currentY, GUI.BALL_RADIUS, GUI.BALL_OPTIONS);
+                ball.render.fillStyle = BALL_COLORS[ballList[currentBall] - 1];
+                ball.label = "ball-" + ballList[currentBall];
+
+                World.add(this.engine.world, ball);
+                currentY += (GUI.BALL_RADIUS * 2);
+                currentBall += 1;
             }
             ballsPerRow += 1;
-            x += GUI.BALL_RADIUS * 2;
+            x += (GUI.BALL_RADIUS * 2);
             y -= GUI.BALL_RADIUS;
         }
+    }
+
+    GUI.prototype.createBallList = function() {
+        var ballList = [];
+        var solidBalls = SOLID_BALLS.slice();
+        var stripeBalls = STRIPE_BALLS.slice();
+
+        // the 4th ball must be the 8 ball
+        ballList[4] = 8;
+
+        //for simplicity, we will make the bottom left corner a solid and bottom right a stripe every time
+        var bottomLeft = Common.choose(solidBalls);
+        ballList[10] = bottomLeft;
+        // remove the ball from the list
+        var index = solidBalls.indexOf(bottomLeft);
+        if (index != -1) {
+            solidBalls.splice(index, 1);
+        }
+
+        var bottomRight = Common.choose(stripeBalls);
+        ballList[14] = bottomRight;
+        // remove the ball from the list
+        index = stripeBalls.indexOf(bottomRight);
+        if (index != -1) {
+            stripeBalls.splice(index, 1);
+        }
+
+        //fill in the rest of the positions randomly
+        var remainingBalls = solidBalls.concat(stripeBalls);
+        for (var i = 0; i < 15; i++) {
+            if (ballList[i] === undefined) {
+                var ball = Common.choose(remainingBalls);
+                ballList[i] = ball;
+                index = remainingBalls.indexOf(ball);
+                if (index != -1) {
+                    remainingBalls.splice(index, 1);
+                }
+            }
+        }
+
+        return ballList;
     }
 
     return GUI;
