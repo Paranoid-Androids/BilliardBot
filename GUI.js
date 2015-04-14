@@ -58,14 +58,7 @@ GUI = new function() {
           Bodies.rectangle(WIDTH, HEIGHT / 2, 1, HEIGHT, { isStatic: true }),
         ]);
 
-        //TEST CODE: doing a random break
-        hasBroken = false;
         Events.on(this.engine, 'tick', function(event) {
-           if(!hasBroken) {
-            hasBroken = true;
-            Body.applyForce(GUI.cue, {x: WIDTH / 4, y: HEIGHT / 2}, {x: .02, y: 0});
-            waitingForShot = false;
-           }
 
             if (!waitingForShot) {
                 calculateTotalBallSpeed();
@@ -78,6 +71,25 @@ GUI = new function() {
         Engine.run(this.engine);
     };
 
+    this.takeShot = function(position, forceVector) {
+        Body.applyForce(GUI.cue, position, forceVector);
+        waitingForShot = false;
+    }
+
+    this.getWidth = function() {
+        return WIDTH;
+    }
+
+    this.getHeight = function() {
+        return HEIGHT;
+    }
+
+    this.getCuePosition = function() {
+        allBodies = Composite.allBodies(this.engine.world);
+        console.log(allBodies[0].position);
+        return allBodies[0].position;
+    }
+
     function calculateTotalBallSpeed() {
         allBodies = Composite.allBodies(GUI.engine.world);
         totalSpeed = 0
@@ -88,9 +100,8 @@ GUI = new function() {
             }
         }
         if (totalSpeed > 0 && totalSpeed < SPEED_THRESHOLD) {
-            //TODO notify GameState that the balls have stopped
-            console.log(totalSpeed);
             waitingForShot = true;
+            GameLogic.takeNextTurn();
         }
     }
 
