@@ -6,7 +6,7 @@
 define(function(require) {
     "use strict";
 
-    /** @namespace */
+    /** @exports Common */
     var common = {};
 
     /**
@@ -19,6 +19,7 @@ define(function(require) {
     };
 
     /**
+     * Starts a new pool game in the given container.
      * @param container {!Element} The container that contains the pool table.
      * @param gameType {!common.GameType} The type of game we're playing.
      */

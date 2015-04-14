@@ -6,6 +6,12 @@
 define(function(require) {
     "use strict";
 
+    /**
+     * Constructs a new pool GUI.
+     * @constructor
+     * @exports GUI
+     * @param container {!Element} The container to use.
+     */
     function GUI(container) {
         this.container = container;
     }
@@ -162,7 +168,9 @@ define(function(require) {
         }
     }
 
-    // sets up the default rack
+    /**
+     * Sets up the default rack.
+     */
     GUI.prototype.setupRack = function() {
         var x = 3 * GUI.WIDTH / 4;
         var y = GUI.HEIGHT / 2;
