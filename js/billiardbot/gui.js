@@ -6,9 +6,9 @@
 define(function(require) {
     "use strict";
 
-    var Matter = require('third_party/matter');
-
-    function GUI() {}
+    function GUI(container) {
+        this.container = container;
+    }
 
     /**
      * The width of the table, in meters.
@@ -58,8 +58,8 @@ define(function(require) {
         restitution: 0.92
     };
 
+    var Matter = require('third_party/matter');
     var waitingForShot = true;
-
 
     // Matter module aliases
     var Engine = Matter.Engine,
@@ -72,7 +72,9 @@ define(function(require) {
         Events = Matter.Events,
         MouseConstraint = Matter.MouseConstraint;
 
-    GUI.init = function() {
+    GUI.prototype.init = function() {
+        var self = this;
+
         // create a Matter.js engine
         this.container = document.getElementById("canvas-container");
         this.engine = Engine.create(this.container, {
@@ -91,7 +93,7 @@ define(function(require) {
         World.add(this.engine.world, this.cue);
 
         //create the rack
-        setupRack(this.engine);
+        this.setupRack();
 
         // add some some walls to the world
         World.add(this.engine.world, [
@@ -109,23 +111,9 @@ define(function(require) {
             }),
         ]);
 
-        //TEST CODE: doing a random break
-        var hasBroken = false;
         Events.on(this.engine, 'tick', function(event) {
-            if (!hasBroken) {
-                hasBroken = true;
-                Body.applyForce(GUI.cue, {
-                    x: GUI.WIDTH / 4,
-                    y: GUI.HEIGHT / 2
-                }, {
-                    x: .02,
-                    y: 0
-                });
-                waitingForShot = false;
-            }
-
             if (!waitingForShot) {
-                calculateTotalBallSpeed();
+                self.calculateTotalBallSpeed();
             }
 
         });
@@ -138,8 +126,28 @@ define(function(require) {
         Engine.run(this.engine);
     };
 
-    function calculateTotalBallSpeed() {
-        var allBodies = Composite.allBodies(GUI.engine.world);
+    GUI.prototype.takeShot = function(position, forceVector) {
+        Body.applyForce(this.cue, position, forceVector);
+        waitingForShot = false;
+    }
+
+    GUI.prototype.getWidth = function() {
+        return WIDTH;
+    }
+
+    GUI.prototype.getHeight = function() {
+        return HEIGHT;
+    }
+
+    GUI.prototype.getCuePosition = function() {
+        var allBodies = Composite.allBodies(this.engine.world);
+        console.log(allBodies[0].position);
+        return allBodies[0].position;
+    }
+
+
+    GUI.prototype.calculateTotalBallSpeed = function() {
+        var allBodies = Composite.allBodies(this.engine.world);
         var totalSpeed = 0
         for (var i = 0; i < allBodies.length; i++) {
             var body = allBodies[i];
@@ -148,14 +156,14 @@ define(function(require) {
             }
         }
         if (totalSpeed > 0 && totalSpeed < GUI.SPEED_THRESHOLD) {
-            //TODO notify GameState that the balls have stopped
             console.log(totalSpeed);
             waitingForShot = true;
+            GameLogic.takeNextTurn();
         }
     }
 
     // sets up the default rack
-    function setupRack(engine) {
+    GUI.prototype.setupRack = function() {
         var x = 3 * GUI.WIDTH / 4;
         var y = GUI.HEIGHT / 2;
         var ballsPerRow = 1;
@@ -163,7 +171,7 @@ define(function(require) {
         for (var i = 0; i < 5; i++) {
             var currentY = y
             for (var j = 0; j < ballsPerRow; j++) {
-                World.add(engine.world,
+                World.add(this.engine.world,
                     Bodies.circle(x, currentY, GUI.BALL_RADIUS, GUI.BALL_OPTIONS));
                 currentY += GUI.BALL_RADIUS * 2;
             }
