@@ -2,16 +2,19 @@ GUI = new function() {
 
     var TABLE_WIDTH = 2.7, //in meters
         TABLE_HEIGHT = TABLE_WIDTH / 2, //height is half the width
-        WIDTH = 800,
+        WIDTH = 800, //in pixels
         PPM = WIDTH / TABLE_WIDTH, //Pixels per meter
         HEIGHT = TABLE_HEIGHT * PPM,
-        BALL_RADIUS = (0.05715 * PPM) / 2;
+        BALL_RADIUS = (0.05715 * PPM) / 2,
+        SPEED_THRESHOLD = 0.1;
 
     var ballOptions = {
             frictionAir: 0.015, 
             friction: 0.0001,
             restitution: 0.92
         };
+
+    var waitingForShot = true;
 
 
     // Matter module aliases
@@ -45,7 +48,7 @@ GUI = new function() {
         World.add(this.engine.world, this.cue);
 
         //create the rack
-        this.setupRack(this.engine);
+        setupRack(this.engine);
 
         // add some some walls to the world
         World.add(this.engine.world, [
@@ -61,7 +64,13 @@ GUI = new function() {
            if(!hasBroken) {
             hasBroken = true;
             Body.applyForce(GUI.cue, {x: WIDTH / 4, y: HEIGHT / 2}, {x: .02, y: 0});
+            waitingForShot = false;
            }
+
+            if (!waitingForShot) {
+                calculateTotalBallSpeed();
+            }
+
         });
 
         // run the engine, turning off gravity
@@ -69,8 +78,24 @@ GUI = new function() {
         Engine.run(this.engine);
     };
 
+    function calculateTotalBallSpeed() {
+        allBodies = Composite.allBodies(GUI.engine.world);
+        totalSpeed = 0
+        for (i = 0; i < allBodies.length; i++) {
+            body = allBodies[i];
+            if (body.label == "Circle Body") {
+                totalSpeed += body.speed;
+            }
+        }
+        if (totalSpeed > 0 && totalSpeed < SPEED_THRESHOLD) {
+            //TODO notify GameState that the balls have stopped
+            console.log(totalSpeed);
+            waitingForShot = true;
+        }
+    }
+
     // sets up the default rack
-    this.setupRack = function(engine) {
+    function setupRack(engine) {
         x = (3 * WIDTH / 4);
         y = HEIGHT / 2;
         ballsPerRow = 1;
