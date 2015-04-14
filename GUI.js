@@ -38,7 +38,7 @@ GUI = new function() {
                 options: {
                     width: WIDTH,
                     height: HEIGHT,
-                    showAngleIndicator:true
+                    wireframes:false
                 }
             }
         });    
