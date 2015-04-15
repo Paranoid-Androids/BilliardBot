@@ -166,6 +166,10 @@ define(function(require) {
     }
 
 
+    /**
+     * Detects when all the balls have stopped moving on screen
+     * and alerts the GameLogic module to take its next turn
+     */
     GUI.prototype.calculateTotalBallSpeed = function() {
         var allBodies = Composite.allBodies(this.engine.world);
         var totalSpeed = 0
@@ -210,6 +214,11 @@ define(function(require) {
         }
     }
 
+    /**
+     * creates a list of balls in the order that they will be racked.
+     * this ensures the 8 ball will be in the middle, the bottom left will have a solid
+     * and the bottom right will have a stripe, and the rest will be randomly placed
+     */
     GUI.prototype.createBallList = function() {
         var ballList = [];
         var solidBalls = SOLID_BALLS.slice();
