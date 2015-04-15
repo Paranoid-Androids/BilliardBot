@@ -69,7 +69,7 @@ define(function(require) {
             }
         };
 
-    GUI.WALL_WIDTH = 1;
+    GUI.WALL_WIDTH = 100;
     GUI.WALL_OPTIONS = {
         isStatic: true
     }
@@ -204,7 +204,7 @@ define(function(require) {
                 currentBall += 1;
             }
             ballsPerRow += 1;
-            
+
             x += Math.sqrt(Math.pow(GUI.BALL_RADIUS * 2, 2) - Math.pow(GUI.BALL_RADIUS, 2));
             y -= GUI.BALL_RADIUS;
         }
