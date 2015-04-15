@@ -6,8 +6,13 @@
 define(function(require) {
     "use strict";
 
+    var GUI = require('gui');
+    var GUIListener = require('guilistener');
+
     /**
-     * @constructor
+     * Constructs a new GameLogic.
+     * @class
+     * @implements GUIListener
      * @exports GameLogic
      * @param gui {GUI} The GUI that this class should use.
      */
@@ -15,15 +20,27 @@ define(function(require) {
         this.gui = gui;
     }
 
-    /** @const */
+    /**
+     * The break vector.
+     * @const {x: number, y: number}
+     */
     GameLogic.BREAK_VECTOR = {
         x: .02,
         y: 0
     };
 
+    /**
+     * Initializes the game logic.
+     */
     GameLogic.prototype.init = function() {
+        // TODO: replace this with something else.
         this.takeShot(this.gui.getCuePosition(), GameLogic.BREAK_VECTOR);
     };
+
+    /** @override */
+    GameLogic.prototype.onBallsStopped = function() {
+        this.takeNextTurn();
+    }
 
     /**
      * Takes a shot.

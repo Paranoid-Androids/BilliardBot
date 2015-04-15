@@ -6,6 +6,8 @@
 define(function(require) {
     "use strict";
 
+    var GUIListener = require('guilistener');
+
     /**
      * Constructs a new pool GUI.
      * @constructor
@@ -58,30 +60,70 @@ define(function(require) {
      */
     GUI.SPEED_THRESHOLD = 0.05;
 
+    /**
+     * Matter.js options for each ball.
+     * @constant {object}
+     */
     GUI.BALL_OPTIONS = {
-        frictionAir: 0.015, 
+        frictionAir: 0.015,
         friction: 0.0001,
         restitution: 0.92,
         render: {
             lineWidth: 1,
             strokeStyle: "transparent",
             fillStyle: "white"
-            }
-        };
+        }
+    };
 
+    /**
+     * The width of the wall, in pixels.
+     * @constant {number}
+     */
     GUI.WALL_WIDTH = 100;
+
+    /**
+     * Matter.js options for the wall.
+     */
     GUI.WALL_OPTIONS = {
         isStatic: true
     }
 
-    var BALL_COLORS = ["yellow", "blue", "red", "purple", "orange", "green", "maroon", "black",
-        "yellow", "blue", "red", "purple", "orange", "green", "maroon"];
-    var SOLID_BALLS = [1, 2, 3, 4, 5, 6, 7];
-    var STRIPE_BALLS = [9, 10, 11, 12, 13, 14, 15];
+    /**
+     * The list of colors for each ball.
+     * @const {Array.<string>}
+     */
+    GUI.BALL_COLORS = ["yellow", "blue", "red", "purple", "orange", "green", "maroon", "black",
+        "yellow", "blue", "red", "purple", "orange", "green", "maroon"
+    ];
+
+    /**
+     * The list of balls that should have a solid appearance.
+     * @const {Array.<string>}
+     */
+    GUI.SOLID_BALLS = [1, 2, 3, 4, 5, 6, 7];
+
+    /**
+     * The list of balls that should have a striped appearance.
+     * @const {Array.<string>}
+     */
+    GUI.STRIPE_BALLS = [9, 10, 11, 12, 13, 14, 15];
+
+    /**
+     * Whether the GUI is currently idle and waiting for someone to take a
+     * shot.
+     * @type {!boolean}
+     * @private
+     */
+    GUI.prototype.waitingForShot = true;
+
+    /**
+     * The current listener.
+     * @type {?GUIListener}
+     * @private
+     */
+    GUI.prototype.listener = null;
 
     var Matter = require('third_party/matter');
-    var GameLogic;
-    var waitingForShot = true;
 
     // Matter module aliases
     var Engine = Matter.Engine,
@@ -94,48 +136,62 @@ define(function(require) {
         Events = Matter.Events,
         MouseConstraint = Matter.MouseConstraint;
 
+    /**
+     * Sets the event listener.
+     * @param {GUIListener} listener
+     */
+    GUI.prototype.setListener = function(listener) {
+        this.listener = listener;
+    }
+
     GUI.prototype.init = function() {
         var self = this;
 
-        // create a Matter.js engine
-        this.container = document.getElementById("canvas-container");
+        // Create the Matter.js engine.
         this.engine = Engine.create(this.container, {
             render: {
                 options: {
                     width: GUI.WIDTH,
                     height: GUI.HEIGHT,
-                    wireframes:false,
+                    wireframes: false,
                     background: "#31B94D"
                 }
             }
         });
 
-        //create the cue ball
+        // Create the cue ball.
         this.cue = Bodies.circle(GUI.WIDTH / 4, GUI.HEIGHT / 2, GUI.BALL_RADIUS,
             GUI.BALL_OPTIONS);
         this.cue.label = "ball-cue";
         World.add(this.engine.world, this.cue);
 
-        //create the rack
+        // Create the rack.
         this.setupRack();
 
-        // add some some walls to the world
+        // Add some some walls to the world.
         var wallOffset = (GUI.WALL_WIDTH / 2);
         World.add(this.engine.world, [
-            Bodies.rectangle(GUI.WIDTH / 2, - wallOffset, GUI.WIDTH, GUI.WALL_WIDTH, GUI.WALL_OPTIONS),
+            Bodies.rectangle(GUI.WIDTH / 2, -wallOffset, GUI.WIDTH, GUI.WALL_WIDTH, GUI.WALL_OPTIONS),
             Bodies.rectangle(GUI.WIDTH / 2, GUI.HEIGHT + wallOffset, GUI.WIDTH, GUI.WALL_WIDTH, GUI.WALL_OPTIONS),
             Bodies.rectangle(-wallOffset, GUI.HEIGHT / 2, GUI.WALL_WIDTH, GUI.HEIGHT, GUI.WALL_OPTIONS),
             Bodies.rectangle(GUI.WIDTH + wallOffset, GUI.HEIGHT / 2, GUI.WALL_WIDTH, GUI.HEIGHT, GUI.WALL_OPTIONS)
         ]);
 
         Events.on(this.engine, 'tick', function(event) {
-            if (!waitingForShot) {
-                self.calculateTotalBallSpeed();
+            if (!self.waitingForShot) {
+                var totalSpeed = self.calculateTotalBallSpeed();
+
+                if (totalSpeed > 0 && totalSpeed < GUI.SPEED_THRESHOLD) {
+                    self.waitingForShot = true;
+                    if (self.listener) {
+                        self.listener.onBallsStopped();
+                    }
+                }
             }
 
         });
 
-        // run the engine, turning off gravity
+        // Run the engine, turning off gravity.
         this.engine.world.gravity = {
             x: 0,
             y: 0
@@ -143,32 +199,42 @@ define(function(require) {
         Engine.run(this.engine);
     };
 
+    /**
+     * Takes a shot from the given position with the given force vector.
+     * @param {!object} The position.
+     * @param {!forceVector} The force vector.
+     */
     GUI.prototype.takeShot = function(position, forceVector) {
         Body.applyForce(this.cue, position, forceVector);
-        waitingForShot = false;
+        this.waitingForShot = false;
     }
 
+    /**
+     * @return {!number} The width of the table, in pixels.
+     */
     GUI.prototype.getWidth = function() {
         return WIDTH;
     }
 
+    /**
+     * @return {!number} The height of the table, in pixels.
+     */
     GUI.prototype.getHeight = function() {
         return HEIGHT;
     }
 
+    /**
+     * @return {!object} The position of the cue ball.
+     */
     GUI.prototype.getCuePosition = function() {
         var allBodies = Composite.allBodies(this.engine.world);
         return allBodies[0].position;
     }
 
-    GUI.prototype.setGameLogic = function(gameLogic) {
-        GameLogic = gameLogic;
-    }
-
-
     /**
-     * Detects when all the balls have stopped moving on screen
-     * and alerts the GameLogic module to take its next turn
+     * Detects when all the balls have stopped moving on screen and alerts the
+     * listener module to take its next turn.
+     * @return {number} The total speed of the balls.
      */
     GUI.prototype.calculateTotalBallSpeed = function() {
         var allBodies = Composite.allBodies(this.engine.world);
@@ -180,10 +246,7 @@ define(function(require) {
             }
         }
 
-        if (totalSpeed > 0 && totalSpeed < GUI.SPEED_THRESHOLD) {
-            waitingForShot = true;
-            GameLogic.takeNextTurn();
-        }
+        return totalSpeed;
     }
 
     /**
@@ -200,7 +263,7 @@ define(function(require) {
             var currentY = y
             for (var j = 0; j < ballsPerRow; j++) {
                 var ball = Bodies.circle(x, currentY, GUI.BALL_RADIUS, GUI.BALL_OPTIONS);
-                ball.render.fillStyle = BALL_COLORS[ballList[currentBall] - 1];
+                ball.render.fillStyle = GUI.BALL_COLORS[ballList[currentBall] - 1];
                 ball.label = "ball-" + ballList[currentBall];
 
                 World.add(this.engine.world, ball);
@@ -215,22 +278,25 @@ define(function(require) {
     }
 
     /**
-     * creates a list of balls in the order that they will be racked.
-     * this ensures the 8 ball will be in the middle, the bottom left will have a solid
-     * and the bottom right will have a stripe, and the rest will be randomly placed
+     * Creates a list of balls in the order that they will be racked. This
+     * ensures the 8 ball will be in the middle, the bottom left will have a
+     * solid and the bottom right will have a stripe, and the rest will be
+     * randomly placed.
      */
     GUI.prototype.createBallList = function() {
         var ballList = [];
-        var solidBalls = SOLID_BALLS.slice();
-        var stripeBalls = STRIPE_BALLS.slice();
+        var solidBalls = GUI.SOLID_BALLS.slice();
+        var stripeBalls = GUI.STRIPE_BALLS.slice();
 
-        // the 4th ball must be the 8 ball
+        // The 4th ball must be the 8 ball.
         ballList[4] = 8;
 
-        //for simplicity, we will make the bottom left corner a solid and bottom right a stripe every time
+        // For simplicity, we will make the bottom left corner a solid and
+        // bottom right a stripe every time.
         var bottomLeft = Common.choose(solidBalls);
         ballList[10] = bottomLeft;
-        // remove the ball from the list
+
+        // Remove the ball from the list.
         var index = solidBalls.indexOf(bottomLeft);
         if (index != -1) {
             solidBalls.splice(index, 1);
@@ -238,13 +304,13 @@ define(function(require) {
 
         var bottomRight = Common.choose(stripeBalls);
         ballList[14] = bottomRight;
-        // remove the ball from the list
+        // Remove the ball from the list.
         index = stripeBalls.indexOf(bottomRight);
         if (index != -1) {
             stripeBalls.splice(index, 1);
         }
 
-        //fill in the rest of the positions randomly
+        // Fill in the rest of the positions randomly.
         var remainingBalls = solidBalls.concat(stripeBalls);
         for (var i = 0; i < 15; i++) {
             if (ballList[i] === undefined) {

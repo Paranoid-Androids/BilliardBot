@@ -31,7 +31,7 @@ define(function(require) {
 
         var gui = new GUI(container);
         var gameLogic = new GameLogic(gui, gameType);
-        gui.setGameLogic(gameLogic);
+        gui.setListener(gameLogic);
 
         gui.init();
         gameLogic.init();

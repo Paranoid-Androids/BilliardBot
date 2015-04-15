@@ -11,5 +11,6 @@ requirejs.config({
 });
 
 requirejs(['common'], function(common) {
-    common.startGame('canvas-container', common.GameType.SINGLE_AI);
+    common.startGame(document.getElementById('canvas-container'),
+        common.GameType.SINGLE_AI);
 });
