@@ -56,7 +56,7 @@ define(function(require) {
      * The speed threshold.
      * @constant {number}
      */
-    GUI.SPEED_THRESHOLD = 0.1;
+    GUI.SPEED_THRESHOLD = 0.05;
 
     GUI.BALL_OPTIONS = {
         frictionAir: 0.015, 
@@ -69,12 +69,18 @@ define(function(require) {
             }
         };
 
+    GUI.WALL_WIDTH = 1;
+    GUI.WALL_OPTIONS = {
+        isStatic: true
+    }
+
     var BALL_COLORS = ["yellow", "blue", "red", "purple", "orange", "green", "maroon", "black",
         "yellow", "blue", "red", "purple", "orange", "green", "maroon"];
     var SOLID_BALLS = [1, 2, 3, 4, 5, 6, 7];
     var STRIPE_BALLS = [9, 10, 11, 12, 13, 14, 15];
 
     var Matter = require('third_party/matter');
+    var GameLogic;
     var waitingForShot = true;
 
     // Matter module aliases
@@ -107,26 +113,19 @@ define(function(require) {
         //create the cue ball
         this.cue = Bodies.circle(GUI.WIDTH / 4, GUI.HEIGHT / 2, GUI.BALL_RADIUS,
             GUI.BALL_OPTIONS);
-        this.cue.label = "cue";
+        this.cue.label = "ball-cue";
         World.add(this.engine.world, this.cue);
 
         //create the rack
         this.setupRack();
 
         // add some some walls to the world
+        var wallOffset = (GUI.WALL_WIDTH / 2);
         World.add(this.engine.world, [
-            Bodies.rectangle(GUI.WIDTH / 2, 0, GUI.WIDTH, 1, {
-                isStatic: true
-            }),
-            Bodies.rectangle(GUI.WIDTH / 2, GUI.HEIGHT, GUI.WIDTH, 1, {
-                isStatic: true
-            }),
-            Bodies.rectangle(0, GUI.HEIGHT / 2, 1, GUI.HEIGHT, {
-                isStatic: true
-            }),
-            Bodies.rectangle(GUI.WIDTH, GUI.HEIGHT / 2, 1, GUI.HEIGHT, {
-                isStatic: true
-            }),
+            Bodies.rectangle(GUI.WIDTH / 2, - wallOffset, GUI.WIDTH, GUI.WALL_WIDTH, GUI.WALL_OPTIONS),
+            Bodies.rectangle(GUI.WIDTH / 2, GUI.HEIGHT + wallOffset, GUI.WIDTH, GUI.WALL_WIDTH, GUI.WALL_OPTIONS),
+            Bodies.rectangle(-wallOffset, GUI.HEIGHT / 2, GUI.WALL_WIDTH, GUI.HEIGHT, GUI.WALL_OPTIONS),
+            Bodies.rectangle(GUI.WIDTH + wallOffset, GUI.HEIGHT / 2, GUI.WALL_WIDTH, GUI.HEIGHT, GUI.WALL_OPTIONS)
         ]);
 
         Events.on(this.engine, 'tick', function(event) {
@@ -162,18 +161,22 @@ define(function(require) {
         return allBodies[0].position;
     }
 
+    GUI.prototype.setGameLogic = function(gameLogic) {
+        GameLogic = gameLogic;
+    }
+
 
     GUI.prototype.calculateTotalBallSpeed = function() {
         var allBodies = Composite.allBodies(this.engine.world);
         var totalSpeed = 0
         for (var i = 0; i < allBodies.length; i++) {
             var body = allBodies[i];
-            if (body.label == "Circle Body") {
+            if (body.label.indexOf("ball-") == 0) {
                 totalSpeed += body.speed;
             }
         }
+
         if (totalSpeed > 0 && totalSpeed < GUI.SPEED_THRESHOLD) {
-            console.log(totalSpeed);
             waitingForShot = true;
             GameLogic.takeNextTurn();
         }
@@ -201,7 +204,8 @@ define(function(require) {
                 currentBall += 1;
             }
             ballsPerRow += 1;
-            x += (GUI.BALL_RADIUS * 2);
+            
+            x += Math.sqrt(Math.pow(GUI.BALL_RADIUS * 2, 2) - Math.pow(GUI.BALL_RADIUS, 2));
             y -= GUI.BALL_RADIUS;
         }
     }

@@ -38,7 +38,7 @@ define(function(require) {
      * Takes the next turn.
      */
     GameLogic.prototype.takeNextTurn = function() {
-        console.log("next turn!");
+        this.takeShot(this.gui.getCuePosition(), GameLogic.BREAK_VECTOR);
     };
 
     return GameLogic;
