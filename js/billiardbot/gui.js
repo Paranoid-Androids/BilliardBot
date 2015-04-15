@@ -55,12 +55,6 @@ define(function(require) {
     GUI.BALL_RADIUS = (0.05715 * GUI.PPM) / 2;
 
     /**
-     * The speed threshold.
-     * @constant {number}
-     */
-    GUI.SPEED_THRESHOLD = 0.05;
-
-    /**
      * Matter.js options for each ball.
      * @constant {object}
      */
@@ -76,23 +70,86 @@ define(function(require) {
     };
 
     /**
+     * The height of the strip showing pocketed balls (the "bench"?), in pixels.
+     * @constant {number}
+     */
+    GUI.BENCH_HEIGHT = GUI.BALL_RADIUS * 4;
+
+    /**
+     * Matter.js options for the bench.
+     * @constant {object}
+     */
+    GUI.BENCH_OPTIONS = {
+        isStatic: true,
+        label: 'bench',
+        slop: 1,
+        render: {
+            lineWidth: 1,
+            strokeStyle: "black",
+            fillStyle: "tan"
+        }
+    }
+
+    // TODO: if needed, improve the appearance of the pockets.
+    /**
+     * The radius of the pocket mouth on the corners, in pixels.
+     * @constant {number}
+     */
+    GUI.POCKET_RADIUS_CORNER = (0.115 * GUI.PPM) / 2 * 1.75;
+
+    /**
+     * The radius of the pocket mouth on the side, in pixels.
+     * @constant {number}
+     */
+    GUI.POCKET_RADIUS_SIDE = (0.129 * GUI.PPM) / 2;
+
+    /**
+     * Matter.js options for each ball.
+     * @constant {object}
+     */
+    GUI.POCKET_OPTIONS = {
+        isStatic: true,
+        label: 'pocket',
+        slop: 3,
+        render: {
+            lineWidth: 1,
+            strokeStyle: "white",
+            fillStyle: "black"
+        }
+    };
+
+    /**
+     * The speed of the fastest ball below which the turn is considered to be
+     * over.
+     * @constant {number}
+     */
+    GUI.SPEED_THRESHOLD = 0.05;
+
+    /**
      * The width of the wall, in pixels.
      * @constant {number}
      */
-    GUI.WALL_WIDTH = 100;
+    GUI.WALL_WIDTH = 40;
 
     /**
      * Matter.js options for the wall.
      */
     GUI.WALL_OPTIONS = {
-        isStatic: true
+        isStatic: true,
+        slop: 0.02,
+        render: {
+            lineWidth: 3,
+            strokeStyle: "white",
+            fillStyle: "brown"
+        }
     }
 
     /**
      * The list of colors for each ball.
      * @const {Array.<string>}
      */
-    GUI.BALL_COLORS = ["yellow", "blue", "red", "purple", "orange", "green", "maroon", "black",
+    GUI.BALL_COLORS = ["yellow", "blue", "red", "purple", "orange", "green", "maroon",
+        "black",
         "yellow", "blue", "red", "purple", "orange", "green", "maroon"
     ];
 
@@ -123,6 +180,12 @@ define(function(require) {
      */
     GUI.prototype.listener = null;
 
+    /**
+     * The number of balls that have fallen into a pocket.
+     * @type {!number}
+     */
+    GUI.prototype.numPocketedBalls = 0;
+
     var Matter = require('third_party/matter');
 
     // Matter module aliases
@@ -152,12 +215,65 @@ define(function(require) {
             render: {
                 options: {
                     width: GUI.WIDTH,
-                    height: GUI.HEIGHT,
+                    height: GUI.HEIGHT + GUI.BENCH_HEIGHT,
                     wireframes: false,
                     background: "#31B94D"
                 }
             }
         });
+
+        // Add some some walls to the world.
+        // Note that these values were carefully calculated by first hiding all the pockets and
+        // seeing that the balls could fit.
+        var wallOffset = GUI.WALL_WIDTH / 4;
+        var pocketOffset = GUI.POCKET_RADIUS_CORNER * 2;
+        World.add(this.engine.world, [
+            // Left wall.
+            Bodies.rectangle(-wallOffset, GUI.HEIGHT / 2, GUI.WALL_WIDTH, GUI.HEIGHT -
+                pocketOffset, GUI.WALL_OPTIONS),
+            // Right wall.
+            Bodies.rectangle(GUI.WIDTH + wallOffset, GUI.HEIGHT / 2, GUI.WALL_WIDTH,
+                GUI.HEIGHT - pocketOffset, GUI.WALL_OPTIONS),
+            // Top wall (broken up into two).
+            Bodies.rectangle(GUI.WIDTH / 4 + pocketOffset / 12, -wallOffset, (
+                GUI.WIDTH - pocketOffset * 7 / 5) / 2, GUI.WALL_WIDTH, GUI.WALL_OPTIONS),
+            Bodies.rectangle(GUI.WIDTH * 3 / 4 - pocketOffset / 12, -wallOffset, (
+                GUI.WIDTH - pocketOffset * 7 / 5) / 2, GUI.WALL_WIDTH, GUI.WALL_OPTIONS),
+            // Bottom wall (broken up into two).
+            Bodies.rectangle(GUI.WIDTH / 4 + pocketOffset / 12, GUI.HEIGHT +
+                wallOffset, (GUI.WIDTH - pocketOffset * 7 / 5) / 2, GUI.WALL_WIDTH,
+                GUI.WALL_OPTIONS
+            ),
+            Bodies.rectangle(GUI.WIDTH * 3 / 4 - pocketOffset / 12, GUI.HEIGHT +
+                wallOffset, (GUI.WIDTH - pocketOffset * 7 / 5) / 2, GUI.WALL_WIDTH,
+                GUI.WALL_OPTIONS
+            )
+        ]);
+
+        // Add pockets.
+        World.add(this.engine.world, [
+            // Top-left pocket.
+            Bodies.circle(0, 0, GUI.POCKET_RADIUS_CORNER, GUI.POCKET_OPTIONS),
+            // Top-right pocket.
+            Bodies.circle(GUI.WIDTH, 0, GUI.POCKET_RADIUS_CORNER, GUI.POCKET_OPTIONS),
+            // Bottom-left pocket.
+            Bodies.circle(0, GUI.HEIGHT, GUI.POCKET_RADIUS_CORNER, GUI.POCKET_OPTIONS),
+            // Bottom-right pocket.
+            Bodies.circle(GUI.WIDTH, GUI.HEIGHT, GUI.POCKET_RADIUS_CORNER, GUI.POCKET_OPTIONS),
+            // Top side pocket.
+            Bodies.circle(GUI.WIDTH / 2, 0, GUI.POCKET_RADIUS_SIDE, GUI.POCKET_OPTIONS),
+            // Bottom side pocket.
+            Bodies.circle(GUI.WIDTH / 2, GUI.HEIGHT, GUI.POCKET_RADIUS_SIDE,
+                GUI.POCKET_OPTIONS)
+        ]);
+
+        // Add the "bench" that shows the pocketed balls.
+        World.add(this.engine.world,
+            Bodies.rectangle(GUI.WIDTH / 2, GUI.HEIGHT + GUI.BENCH_HEIGHT / 2, GUI.WIDTH,
+                GUI.BENCH_HEIGHT, GUI.BENCH_OPTIONS));
+
+        // Create the rack.
+        this.setupRack();
 
         // Create the cue ball.
         this.cue = Bodies.circle(GUI.WIDTH / 4, GUI.HEIGHT / 2, GUI.BALL_RADIUS,
@@ -165,22 +281,13 @@ define(function(require) {
         this.cue.label = "ball-cue";
         World.add(this.engine.world, this.cue);
 
-        // Create the rack.
-        this.setupRack();
-
-        // Add some some walls to the world.
-        var wallOffset = (GUI.WALL_WIDTH / 2);
-        World.add(this.engine.world, [
-            Bodies.rectangle(GUI.WIDTH / 2, -wallOffset, GUI.WIDTH, GUI.WALL_WIDTH, GUI.WALL_OPTIONS),
-            Bodies.rectangle(GUI.WIDTH / 2, GUI.HEIGHT + wallOffset, GUI.WIDTH, GUI.WALL_WIDTH, GUI.WALL_OPTIONS),
-            Bodies.rectangle(-wallOffset, GUI.HEIGHT / 2, GUI.WALL_WIDTH, GUI.HEIGHT, GUI.WALL_OPTIONS),
-            Bodies.rectangle(GUI.WIDTH + wallOffset, GUI.HEIGHT / 2, GUI.WALL_WIDTH, GUI.HEIGHT, GUI.WALL_OPTIONS)
-        ]);
-
         Events.on(this.engine, 'tick', function(event) {
             if (!self.waitingForShot) {
-                var totalSpeed = self.calculateTotalBallSpeed();
+                // Remove balls that fall in pockets.
+                self.removePocketedBalls();
 
+                // Detect when the balls have stopped moving.
+                var totalSpeed = self.calculateMaximumBallSpeed();
                 if (totalSpeed > 0 && totalSpeed < GUI.SPEED_THRESHOLD) {
                     self.waitingForShot = true;
                     if (self.listener) {
@@ -232,21 +339,21 @@ define(function(require) {
     }
 
     /**
-     * Detects when all the balls have stopped moving on screen and alerts the
-     * listener module to take its next turn.
-     * @return {number} The total speed of the balls.
+     * Used to detect when all the balls have stopped moving on screen in order
+     * to alert the listener module to take its next turn.
+     * @return {number} The speed of the fastest balls.
      */
-    GUI.prototype.calculateTotalBallSpeed = function() {
+    GUI.prototype.calculateMaximumBallSpeed = function() {
         var allBodies = Composite.allBodies(this.engine.world);
-        var totalSpeed = 0
+        var biggestSpeed = 0;
         for (var i = 0; i < allBodies.length; i++) {
-            var body = allBodies[i];
-            if (body.label.indexOf("ball-") == 0) {
-                totalSpeed += body.speed;
+            var ball = allBodies[i];
+            if (!ball.isPocketed && ball.label.indexOf("ball-") == 0) {
+                biggestSpeed = Math.max(biggestSpeed, ball.speed);
             }
         }
 
-        return totalSpeed;
+        return biggestSpeed;
     }
 
     /**
@@ -272,7 +379,8 @@ define(function(require) {
             }
             ballsPerRow += 1;
 
-            x += Math.sqrt(Math.pow(GUI.BALL_RADIUS * 2, 2) - Math.pow(GUI.BALL_RADIUS, 2));
+            x += Math.sqrt(Math.pow(GUI.BALL_RADIUS * 2, 2) - Math.pow(GUI.BALL_RADIUS,
+                2));
             y -= GUI.BALL_RADIUS;
         }
     }
@@ -298,17 +406,13 @@ define(function(require) {
 
         // Remove the ball from the list.
         var index = solidBalls.indexOf(bottomLeft);
-        if (index != -1) {
-            solidBalls.splice(index, 1);
-        }
+        solidBalls.splice(index, 1);
 
         var bottomRight = Common.choose(stripeBalls);
         ballList[14] = bottomRight;
         // Remove the ball from the list.
         index = stripeBalls.indexOf(bottomRight);
-        if (index != -1) {
-            stripeBalls.splice(index, 1);
-        }
+        stripeBalls.splice(index, 1);
 
         // Fill in the rest of the positions randomly.
         var remainingBalls = solidBalls.concat(stripeBalls);
@@ -317,14 +421,47 @@ define(function(require) {
                 var ball = Common.choose(remainingBalls);
                 ballList[i] = ball;
                 index = remainingBalls.indexOf(ball);
-                if (index != -1) {
-                    remainingBalls.splice(index, 1);
-                }
+                remainingBalls.splice(index, 1);
             }
         }
 
         return ballList;
     }
+
+    /**
+     * Remove any balls that have fallen into pockets.
+     */
+    GUI.prototype.removePocketedBalls = function() {
+        var self = this;
+
+        var allBodies = Composite.allBodies(this.engine.world);
+        var activeBalls = allBodies.filter(function(b) {
+            return !b.isPocketed && b.label.indexOf("ball-") == 0;
+        });
+        var wallOffset = GUI.WALL_WIDTH / 3 * (1 - GUI.WALL_OPTIONS.slop);
+
+        activeBalls.forEach(function(ball) {
+            if (ball.position.x < wallOffset || ball.position.x > GUI.WIDTH -
+                wallOffset || ball.position.y < wallOffset || ball.position.y >
+                GUI.HEIGHT - wallOffset) {
+                console.log('Ball ' + ball.label + ' got pocketed!');
+
+                // TODO: resolve the issue with the balls not being properly placed on the bench.
+                // It has to do mainly with the "slop" value of the pockets. Too low, and the
+                // balls won't go into the pocket. Too high, and the ball ends up at a random
+                // location (probably slop is not meant to go up higher than 1 here.)
+                // Maybe there's a way to mark objects as "background" or something?
+                ball.isPocketed = true;
+                Body.setStatic(ball, true);
+                Body.setPosition(ball, {
+                    x: (self.numPocketedBalls + 1) * GUI.BALL_RADIUS *
+                        3,
+                    y: GUI.HEIGHT + GUI.BENCH_HEIGHT / 2,
+                });
+                self.numPocketedBalls++;
+            }
+        });
+    };
 
     return GUI;
 });
