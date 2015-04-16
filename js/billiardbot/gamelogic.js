@@ -10,6 +10,8 @@ define(function(require) {
     var Matter = require('third_party/matter');
     var Common = Matter.Common;
 
+    var ballsSunk = [];
+
     /**
      * Constructs a new GameLogic.
      * @class
@@ -109,6 +111,7 @@ define(function(require) {
 
     GameLogic.prototype.ballSunk = function(ball) {
         console.log("ball " + ball.label + " sunk!");
+        ballsSunk.push(ball);
     }
 
     /**
