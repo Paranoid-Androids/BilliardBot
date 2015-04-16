@@ -44,6 +44,8 @@ define(function(require) {
      */
     GameLogic.STRIPE_BALLS = [9, 10, 11, 12, 13, 14, 15];
 
+    GameLogic.BALL_LABEL_PREFIX = "ball-";
+
     /**
      * The break vector.
      * @const {x: number, y: number}
@@ -110,8 +112,44 @@ define(function(require) {
     }
 
     GameLogic.prototype.ballSunk = function(ball) {
-        console.log("ball " + ball.label + " sunk!");
+        var ballNum = this.getBallNumber(ball);
+        console.log("ball " + ballNum + " sunk!");
+
+        //TODO if one of "our" balls is sunk, we should mark a flag
+        // which says the user should go again
+        // unless the cue ball has been sunk
+
+        if (ballNum == 0) {
+            // the cue ball was sunk
+        }
+        else if (ballNum == 8) {
+            // End state of game
+            // Lost game, unless all your balls are sunk, then won game!
+        }
+        else if (GameLogic.STRIPE_BALLS.indexOf(ballNum) != -1) {
+            // Stripe ball was sunk, remove it from stripe ball list
+            GameLogic.STRIPE_BALLS.splice(GameLogic.STRIPE_BALLS.indexOf(ballNum), 1);
+        }
+        else if (GameLogic.SOLID_BALLS.indexOf(ballNum) != -1) {
+            // solid ball was sunk, remove it from the solid ball list
+            GameLogic.SOLID_BALLS.splice(GameLogic.SOLID_BALLS.indexOf(ballNum), 1);
+        }
+
         ballsSunk.push(ball);
+    }
+
+    /**
+     * gets the ball number from the ball's label
+     * the cue ball has a number of 0
+     */
+    GameLogic.prototype.getBallNumber = function(ball) {
+        if (ball.label.indexOf(GameLogic.BALL_LABEL_PREFIX) == 0) {
+            var ballNumberString = ball.label.substring(GameLogic.BALL_LABEL_PREFIX.length);
+            if (ballNumberString == "cue") {
+                return 0;
+            }
+            return parseInt(ballNumberString);
+        }
     }
 
     /**

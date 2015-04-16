@@ -124,8 +124,6 @@ define(function(require) {
         }
     }
 
-    GUI.BALL_LABEL_PREFIX = "ball-";
-
     /**
      * Whether the GUI is currently idle and waiting for someone to take a
      * shot.
@@ -240,7 +238,7 @@ define(function(require) {
         // Create the cue ball.
         this.cue = Bodies.circle(GUI.WIDTH / 4, GUI.HEIGHT / 2, GUI.BALL_RADIUS,
             GUI.BALL_OPTIONS);
-        this.cue.label = GUI.BALL_LABEL_PREFIX + "cue";
+        this.cue.label = GameLogic.BALL_LABEL_PREFIX + "cue";
         World.add(this.engine.world, this.cue);
 
         Events.on(this.engine, 'tick', function(event) {
@@ -310,7 +308,7 @@ define(function(require) {
         var biggestSpeed = 0;
         for (var i = 0; i < allBodies.length; i++) {
             var ball = allBodies[i];
-            if (ball.label.indexOf(GUI.BALL_LABEL_PREFIX) == 0) {
+            if (ball.label.indexOf(GameLogic.BALL_LABEL_PREFIX) == 0) {
                 biggestSpeed = Math.max(biggestSpeed, ball.speed);
             }
         }
@@ -333,7 +331,7 @@ define(function(require) {
             for (var j = 0; j < ballsPerRow; j++) {
                 var ball = Bodies.circle(x, currentY, GUI.BALL_RADIUS, GUI.BALL_OPTIONS);
                 ball.render.fillStyle = GameLogic.BALL_COLORS[ballList[currentBall] - 1];
-                ball.label = GUI.BALL_LABEL_PREFIX + ballList[currentBall];
+                ball.label = GameLogic.BALL_LABEL_PREFIX + ballList[currentBall];
 
                 World.add(this.engine.world, ball);
                 currentY += (GUI.BALL_RADIUS * 2);
@@ -355,7 +353,7 @@ define(function(require) {
 
         var allBodies = Composite.allBodies(this.engine.world);
         var activeBalls = allBodies.filter(function(b) {
-            return b.label.indexOf(GUI.BALL_LABEL_PREFIX) == 0;
+            return b.label.indexOf(GameLogic.BALL_LABEL_PREFIX) == 0;
         });
         var wallOffset = GUI.WALL_WIDTH / 3 * (1 - GUI.WALL_OPTIONS.slop);
 
@@ -367,7 +365,7 @@ define(function(require) {
 
                 //TODO: render the ball in the bottom bar on the canvas
                 self.numPocketedBalls++;
-                var ballNum = ball.label.substring(GUI.BALL_LABEL_PREFIX.length);
+                var ballNum = ball.label.substring(GameLogic.BALL_LABEL_PREFIX.length);
                 self.ballsSunk.innerHTML += ballNum + ", ";
 
                 if(self.listener) {
