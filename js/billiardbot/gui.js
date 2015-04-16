@@ -7,6 +7,7 @@ define(function(require) {
     "use strict";
 
     var GUIListener = require('guilistener');
+    var GameLogic = require('gamelogic');
 
     /**
      * Constructs a new pool GUI.
@@ -122,27 +123,6 @@ define(function(require) {
             fillStyle: "brown"
         }
     }
-
-    /**
-     * The list of colors for each ball.
-     * @const {Array.<string>}
-     */
-    GUI.BALL_COLORS = ["yellow", "blue", "red", "purple", "orange", "green", "maroon",
-        "black",
-        "yellow", "blue", "red", "purple", "orange", "green", "maroon"
-    ];
-
-    /**
-     * The list of balls that should have a solid appearance.
-     * @const {Array.<string>}
-     */
-    GUI.SOLID_BALLS = [1, 2, 3, 4, 5, 6, 7];
-
-    /**
-     * The list of balls that should have a striped appearance.
-     * @const {Array.<string>}
-     */
-    GUI.STRIPE_BALLS = [9, 10, 11, 12, 13, 14, 15];
 
     GUI.BALL_LABEL_PREFIX = "ball-";
 
@@ -345,14 +325,14 @@ define(function(require) {
         var x = (3 * GUI.WIDTH / 4);
         var y = GUI.HEIGHT / 2;
         var ballsPerRow = 1;
-        var ballList = this.createBallList();
+        var ballList = this.listener.createInitialBallList();
         var currentBall = 0;
 
         for (var i = 0; i < 5; i++) {
             var currentY = y
             for (var j = 0; j < ballsPerRow; j++) {
                 var ball = Bodies.circle(x, currentY, GUI.BALL_RADIUS, GUI.BALL_OPTIONS);
-                ball.render.fillStyle = GUI.BALL_COLORS[ballList[currentBall] - 1];
+                ball.render.fillStyle = GameLogic.BALL_COLORS[ballList[currentBall] - 1];
                 ball.label = GUI.BALL_LABEL_PREFIX + ballList[currentBall];
 
                 World.add(this.engine.world, ball);
@@ -365,49 +345,6 @@ define(function(require) {
                 2));
             y -= GUI.BALL_RADIUS;
         }
-    }
-
-    /**
-     * Creates a list of balls in the order that they will be racked. This
-     * ensures the 8 ball will be in the middle, the bottom left will have a
-     * solid and the bottom right will have a stripe, and the rest will be
-     * randomly placed.
-     */
-    GUI.prototype.createBallList = function() {
-        var ballList = [];
-        var solidBalls = GUI.SOLID_BALLS.slice();
-        var stripeBalls = GUI.STRIPE_BALLS.slice();
-
-        // The 4th ball must be the 8 ball.
-        ballList[4] = 8;
-
-        // For simplicity, we will make the bottom left corner a solid and
-        // bottom right a stripe every time.
-        var bottomLeft = Common.choose(solidBalls);
-        ballList[10] = bottomLeft;
-
-        // Remove the ball from the list.
-        var index = solidBalls.indexOf(bottomLeft);
-        solidBalls.splice(index, 1);
-
-        var bottomRight = Common.choose(stripeBalls);
-        ballList[14] = bottomRight;
-        // Remove the ball from the list.
-        index = stripeBalls.indexOf(bottomRight);
-        stripeBalls.splice(index, 1);
-
-        // Fill in the rest of the positions randomly.
-        var remainingBalls = solidBalls.concat(stripeBalls);
-        for (var i = 0; i < 15; i++) {
-            if (ballList[i] === undefined) {
-                var ball = Common.choose(remainingBalls);
-                ballList[i] = ball;
-                index = remainingBalls.indexOf(ball);
-                remainingBalls.splice(index, 1);
-            }
-        }
-
-        return ballList;
     }
 
     /**
