@@ -15,7 +15,7 @@ define(function(require) {
      * @param container {!Element} The container to use.
      */
     function GUI(container) {
-        this.container = container;
+        this.canvas = container;
     }
 
     /**
@@ -68,27 +68,6 @@ define(function(require) {
             fillStyle: "white"
         }
     };
-
-    /**
-     * The height of the strip showing pocketed balls (the "bench"?), in pixels.
-     * @constant {number}
-     */
-    GUI.BENCH_HEIGHT = GUI.BALL_RADIUS * 4;
-
-    /**
-     * Matter.js options for the bench.
-     * @constant {object}
-     */
-    GUI.BENCH_OPTIONS = {
-        isStatic: true,
-        label: 'bench',
-        slop: 1,
-        render: {
-            lineWidth: 1,
-            strokeStyle: "black",
-            fillStyle: "tan"
-        }
-    }
 
     // TODO: if needed, improve the appearance of the pockets.
     /**
@@ -165,6 +144,8 @@ define(function(require) {
      */
     GUI.STRIPE_BALLS = [9, 10, 11, 12, 13, 14, 15];
 
+    GUI.BALL_LABEL_PREFIX = "ball-";
+
     /**
      * Whether the GUI is currently idle and waiting for someone to take a
      * shot.
@@ -211,16 +192,22 @@ define(function(require) {
         var self = this;
 
         // Create the Matter.js engine.
-        this.engine = Engine.create(this.container, {
+        this.canvas.width = GUI.WIDTH;
+        this.canvas.height = GUI.HEIGHT;
+        this.engine = Engine.create({
             render: {
+                canvas: this.canvas,
                 options: {
                     width: GUI.WIDTH,
-                    height: GUI.HEIGHT + GUI.BENCH_HEIGHT,
+                    height: GUI.HEIGHT,
                     wireframes: false,
                     background: "#31B94D"
                 }
             }
         });
+
+        //Temporary fix: show balls sunk as text
+        this.ballsSunk = document.getElementById("balls-sunk");
 
         // Add some some walls to the world.
         // Note that these values were carefully calculated by first hiding all the pockets and
@@ -267,18 +254,13 @@ define(function(require) {
                 GUI.POCKET_OPTIONS)
         ]);
 
-        // Add the "bench" that shows the pocketed balls.
-        World.add(this.engine.world,
-            Bodies.rectangle(GUI.WIDTH / 2, GUI.HEIGHT + GUI.BENCH_HEIGHT / 2, GUI.WIDTH,
-                GUI.BENCH_HEIGHT, GUI.BENCH_OPTIONS));
-
         // Create the rack.
         this.setupRack();
 
         // Create the cue ball.
         this.cue = Bodies.circle(GUI.WIDTH / 4, GUI.HEIGHT / 2, GUI.BALL_RADIUS,
             GUI.BALL_OPTIONS);
-        this.cue.label = "ball-cue";
+        this.cue.label = GUI.BALL_LABEL_PREFIX + "cue";
         World.add(this.engine.world, this.cue);
 
         Events.on(this.engine, 'tick', function(event) {
@@ -348,7 +330,7 @@ define(function(require) {
         var biggestSpeed = 0;
         for (var i = 0; i < allBodies.length; i++) {
             var ball = allBodies[i];
-            if (!ball.isPocketed && ball.label.indexOf("ball-") == 0) {
+            if (ball.label.indexOf(GUI.BALL_LABEL_PREFIX) == 0) {
                 biggestSpeed = Math.max(biggestSpeed, ball.speed);
             }
         }
@@ -371,7 +353,7 @@ define(function(require) {
             for (var j = 0; j < ballsPerRow; j++) {
                 var ball = Bodies.circle(x, currentY, GUI.BALL_RADIUS, GUI.BALL_OPTIONS);
                 ball.render.fillStyle = GUI.BALL_COLORS[ballList[currentBall] - 1];
-                ball.label = "ball-" + ballList[currentBall];
+                ball.label = GUI.BALL_LABEL_PREFIX + ballList[currentBall];
 
                 World.add(this.engine.world, ball);
                 currentY += (GUI.BALL_RADIUS * 2);
@@ -436,7 +418,7 @@ define(function(require) {
 
         var allBodies = Composite.allBodies(this.engine.world);
         var activeBalls = allBodies.filter(function(b) {
-            return !b.isPocketed && b.label.indexOf("ball-") == 0;
+            return b.label.indexOf(GUI.BALL_LABEL_PREFIX) == 0;
         });
         var wallOffset = GUI.WALL_WIDTH / 3 * (1 - GUI.WALL_OPTIONS.slop);
 
@@ -444,21 +426,16 @@ define(function(require) {
             if (ball.position.x < wallOffset || ball.position.x > GUI.WIDTH -
                 wallOffset || ball.position.y < wallOffset || ball.position.y >
                 GUI.HEIGHT - wallOffset) {
-                console.log('Ball ' + ball.label + ' got pocketed!');
+                Composite.removeBody(self.engine.world, ball)
 
-                // TODO: resolve the issue with the balls not being properly placed on the bench.
-                // It has to do mainly with the "slop" value of the pockets. Too low, and the
-                // balls won't go into the pocket. Too high, and the ball ends up at a random
-                // location (probably slop is not meant to go up higher than 1 here.)
-                // Maybe there's a way to mark objects as "background" or something?
-                ball.isPocketed = true;
-                Body.setStatic(ball, true);
-                Body.setPosition(ball, {
-                    x: (self.numPocketedBalls + 1) * GUI.BALL_RADIUS *
-                        3,
-                    y: GUI.HEIGHT + GUI.BENCH_HEIGHT / 2,
-                });
+                //TODO: render the ball in the bottom bar on the canvas
                 self.numPocketedBalls++;
+                var ballNum = ball.label.substring(GUI.BALL_LABEL_PREFIX.length);
+                self.ballsSunk.innerHTML += ballNum + ", ";
+
+                if(self.listener) {
+                    self.listener.ballSunk(ball);
+                }
             }
         });
     };

@@ -13,3 +13,7 @@ canvas:active {
   cursor: pointer;
   cursor: -webkit-grabbing;
 }
+
+#balls-sunk {
+	color:white;
+}

@@ -23,13 +23,13 @@ define(function(require) {
      * @param container {!Element} The container that contains the pool table.
      * @param gameType {!common.GameType} The type of game we're playing.
      */
-    common.startGame = function(container, gameType) {
+    common.startGame = function(canvas, gameType) {
         console.log('Starting a new pool game: ' + gameType);
 
         var GUI = require('gui');
         var GameLogic = require('gamelogic');
 
-        var gui = new GUI(container);
+        var gui = new GUI(canvas);
         var gameLogic = new GameLogic(gui, gameType);
         gui.setListener(gameLogic);
 

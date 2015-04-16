@@ -42,6 +42,10 @@ define(function(require) {
         this.takeNextTurn();
     }
 
+    GameLogic.prototype.ballSunk = function(ball) {
+        console.log("ball " + ball.label + " sunk!");
+    }
+
     /**
      * Takes a shot.
      * @param position {*} The position.
