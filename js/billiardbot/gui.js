@@ -236,10 +236,7 @@ define(function(require) {
         this.setupRack();
 
         // Create the cue ball.
-        this.cue = Bodies.circle(GUI.WIDTH / 4, GUI.HEIGHT / 2, GUI.BALL_RADIUS,
-            GUI.BALL_OPTIONS);
-        this.cue.label = GameLogic.BALL_LABEL_PREFIX + "cue";
-        World.add(this.engine.world, this.cue);
+        this.placeCue();
 
         Events.on(this.engine, 'tick', function(event) {
             if (!self.waitingForShot) {
@@ -248,7 +245,7 @@ define(function(require) {
 
                 // Detect when the balls have stopped moving.
                 var totalSpeed = self.calculateMaximumBallSpeed();
-                if (totalSpeed > 0 && totalSpeed < GUI.SPEED_THRESHOLD) {
+                if (totalSpeed >= 0 && totalSpeed < GUI.SPEED_THRESHOLD) {
                     self.waitingForShot = true;
                     if (self.listener) {
                         self.listener.onBallsStopped();
@@ -294,8 +291,26 @@ define(function(require) {
      * @return {!object} The position of the cue ball.
      */
     GUI.prototype.getCuePosition = function() {
+        return this.cue.position;
+    }
+
+    GUI.prototype.placeCue = function(position) {
+        this.cue = Bodies.circle(GUI.WIDTH / 4, GUI.HEIGHT / 2, GUI.BALL_RADIUS,
+            GUI.BALL_OPTIONS);
+        this.cue.label = GameLogic.BALL_LABEL_PREFIX + "cue";
+        World.add(this.engine.world, this.cue);
+    }
+
+    GUI.prototype.getBallsOnTable = function() {
         var allBodies = Composite.allBodies(this.engine.world);
-        return allBodies[0].position;
+        var ballsOnTable = [];
+        allBodies.forEach(function(ball) {
+            if (ball.label.indexOf(GameLogic.BALL_LABEL_PREFIX) == 0) {
+                ballsOnTable.push(ball);
+            }
+        });
+
+        return ballsOnTable;
     }
 
     /**
@@ -363,10 +378,7 @@ define(function(require) {
                 GUI.HEIGHT - wallOffset) {
                 Composite.removeBody(self.engine.world, ball)
 
-                //TODO: render the ball in the bottom bar on the canvas
                 self.numPocketedBalls++;
-                var ballNum = ball.label.substring(GameLogic.BALL_LABEL_PREFIX.length);
-                self.ballsSunk.innerHTML += ballNum + ", ";
 
                 if(self.listener) {
                     self.listener.ballSunk(ball);

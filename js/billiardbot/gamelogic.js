@@ -109,13 +109,11 @@ define(function(require) {
         var ballNum = this.getBallNumber(ball);
         console.log("ball " + ballNum + " sunk!");
 
-        //TODO if one of "our" balls is sunk, we should mark a flag
-        // which says the user should go again
-        // unless the cue ball has been sunk
-
         if (ballNum == 0) {
             console.log("sunk cue ball!");
-            // the cue ball was sunk
+            //TODO we should ask the AI agent to place the cue ball in a smart location
+            // for now, we'll just place it back in the same spot that we broke
+            this.gui.placeCue();
         }
         else if (ballNum == 8) {
             console.log("sunk 8 ball!");
@@ -140,10 +138,10 @@ define(function(require) {
                     }
                     set.splice(set.indexOf(ballNum), 1);
                 }
-            }) ;
+            });
+            this.ballsSunk.push(ball);
+            this.gui.ballsSunk.innerHTML += this.getBallNumber(ball) + ", ";
         }
-
-        this.ballsSunk.push(ball);
     }
 
     /**
@@ -202,13 +200,25 @@ define(function(require) {
     }
 
     GameLogic.prototype.getMyBalls = function(player) {
+        var self = this;
+        var ballsOnTable = this.gui.getBallsOnTable();
+        var myBallNumbers = [];
+        var myBalls = [];
         if (player.ballSet === undefined) {
-            var merged = [];
-            merged = merged.concat.apply(merged, GameLogic.BALL_SETS);
-            return merged;
-            
+            myBallNumbers = myBallNumbers.concat.apply(myBallNumbers, GameLogic.BALL_SETS);
         }
-        return GameLogic.BALL_SETS[player.ballSet];
+        else {
+            myBallNumbers = GameLogic.BALL_SETS[player.ballSet];
+        }
+
+        console.log(myBallNumbers);
+
+        ballsOnTable.forEach(function(ball) {
+            if (myBallNumbers.indexOf(self.getBallNumber(ball)) != -1) {
+                myBalls.push(ball);
+            }
+        });
+        return myBalls;
     }
 
     return GameLogic;
