@@ -117,8 +117,7 @@ define(function(require) {
         }
         else if (ballNum == 8) {
             console.log("sunk 8 ball!");
-            // End state of game
-            // Lost game, unless all your balls are sunk, then won game!
+            this.endGame();
         }
         else {
             GameLogic.BALL_SETS.forEach(function(set){
@@ -211,14 +210,27 @@ define(function(require) {
             myBallNumbers = GameLogic.BALL_SETS[player.ballSet];
         }
 
-        console.log(myBallNumbers);
-
         ballsOnTable.forEach(function(ball) {
             if (myBallNumbers.indexOf(self.getBallNumber(ball)) != -1) {
                 myBalls.push(ball);
             }
         });
         return myBalls;
+    }
+
+    /**
+     * determines whether the current player has won or lost
+     */
+    GameLogic.prototype.endGame = function() {
+        var player = this.getCurrentPlayer();
+        var playersBalls  = this.getMyBalls(player);
+        if (playersBalls.length == 0) {
+            console.log("Player: " + this.currentPlayer + " wins!");
+        }
+        else {
+            console.log("Player: " + this.currentPlayer + " lost!");
+        }
+        this.gui.endGame();
     }
 
     return GameLogic;

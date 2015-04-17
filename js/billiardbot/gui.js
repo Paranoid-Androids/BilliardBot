@@ -156,7 +156,8 @@ define(function(require) {
         Composites = Matter.Composites,
         Composite = Matter.Composite,
         Events = Matter.Events,
-        MouseConstraint = Matter.MouseConstraint;
+        MouseConstraint = Matter.MouseConstraint,
+        Runner = Matter.Runner;
 
     /**
      * Sets the event listener.
@@ -386,6 +387,11 @@ define(function(require) {
             }
         });
     };
+
+    GUI.prototype.endGame = function() {
+        console.log("end game");
+        Runner.stop(this.engine);
+    }
 
     return GUI;
 });
