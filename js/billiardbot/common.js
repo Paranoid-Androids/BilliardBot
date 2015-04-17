@@ -28,10 +28,13 @@ define(function(require) {
 
         var GUI = require('gui');
         var GameLogic = require('gamelogic');
+        var AI = require('ai');
 
         var gui = new GUI(canvas);
         var gameLogic = new GameLogic(gui, gameType);
         gui.setListener(gameLogic);
+        var ai0 = new AI(gameLogic);
+        var ai1 = new AI(gameLogic);
 
         gui.init();
         gameLogic.init();

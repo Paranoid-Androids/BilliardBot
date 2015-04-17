@@ -10,7 +10,6 @@ define(function(require) {
     var Matter = require('third_party/matter');
     var Common = Matter.Common;
 
-    var ballsSunk = [];
 
     /**
      * Constructs a new GameLogic.
@@ -21,6 +20,11 @@ define(function(require) {
      */
     function GameLogic(gui) {
         this.gui = gui;
+        this.ballsSunk = [];
+        this.players = [];
+        this.currentPlayer = 0;
+        this.goAgain = false;
+        this.initialBreak = true;
     }
 
     /**
@@ -33,34 +37,23 @@ define(function(require) {
     ];
 
     /**
-     * The list of balls that should have a solid appearance.
-     * @const {Array.<string>}
+     * holds the different sets of balls [solid, stripe]
      */
-    GameLogic.SOLID_BALLS = [1, 2, 3, 4, 5, 6, 7];
-
-    /**
-     * The list of balls that should have a striped appearance.
-     * @const {Array.<string>}
-     */
-    GameLogic.STRIPE_BALLS = [9, 10, 11, 12, 13, 14, 15];
+    GameLogic.BALL_SETS = [[1, 2, 3, 4, 5, 6, 7], [9, 10, 11, 12, 13, 14, 15]]
 
     GameLogic.BALL_LABEL_PREFIX = "ball-";
-
-    /**
-     * The break vector.
-     * @const {x: number, y: number}
-     */
-    GameLogic.BREAK_VECTOR = {
-        x: .02,
-        y: 0
-    };
 
     /**
      * Initializes the game logic.
      */
     GameLogic.prototype.init = function() {
-        // TODO: replace this with something else.
-        this.takeShot(this.gui.getCuePosition(), GameLogic.BREAK_VECTOR);
+        if (this.players.length > 0 && this.players.length <= 2) {
+            this.notifyPlayer();
+            this.initialBreak = false;
+        }
+        else {
+            return new Error("Invalid amount of players!");
+        }
     };
 
     /**
@@ -71,8 +64,8 @@ define(function(require) {
      */
     GameLogic.prototype.createInitialBallList = function() {
         var ballList = [];
-        var solidBalls = GameLogic.SOLID_BALLS.slice();
-        var stripeBalls = GameLogic.STRIPE_BALLS.slice();
+        var solidBalls = GameLogic.BALL_SETS[0].slice();
+        var stripeBalls = GameLogic.BALL_SETS[1].slice();
 
         // The 4th ball must be the 8 ball.
         ballList[4] = 8;
@@ -112,6 +105,7 @@ define(function(require) {
     }
 
     GameLogic.prototype.ballSunk = function(ball) {
+        var self = this;
         var ballNum = this.getBallNumber(ball);
         console.log("ball " + ballNum + " sunk!");
 
@@ -120,22 +114,36 @@ define(function(require) {
         // unless the cue ball has been sunk
 
         if (ballNum == 0) {
+            console.log("sunk cue ball!");
             // the cue ball was sunk
         }
         else if (ballNum == 8) {
+            console.log("sunk 8 ball!");
             // End state of game
             // Lost game, unless all your balls are sunk, then won game!
         }
-        else if (GameLogic.STRIPE_BALLS.indexOf(ballNum) != -1) {
-            // Stripe ball was sunk, remove it from stripe ball list
-            GameLogic.STRIPE_BALLS.splice(GameLogic.STRIPE_BALLS.indexOf(ballNum), 1);
-        }
-        else if (GameLogic.SOLID_BALLS.indexOf(ballNum) != -1) {
-            // solid ball was sunk, remove it from the solid ball list
-            GameLogic.SOLID_BALLS.splice(GameLogic.SOLID_BALLS.indexOf(ballNum), 1);
+        else {
+            GameLogic.BALL_SETS.forEach(function(set){
+                if (set.indexOf(ballNum) != -1) {
+                    var player = self.getCurrentPlayer();
+                    var setIndex = GameLogic.BALL_SETS.indexOf(set);
+                    if (player.ballSet === undefined) {
+                        player.ballSet = setIndex;
+                    }
+                    
+                    if (player.ballSet == setIndex){
+                        console.log("sunk my ball!");
+                        self.goAgain = true;
+                    }
+                    else {
+                        console.log("sunk opponent ball!");
+                    }
+                    set.splice(set.indexOf(ballNum), 1);
+                }
+            }) ;
         }
 
-        ballsSunk.push(ball);
+        this.ballsSunk.push(ball);
     }
 
     /**
@@ -153,20 +161,55 @@ define(function(require) {
     }
 
     /**
+     * registers an AI agent with the system
+     */
+    GameLogic.prototype.registerPlayer = function(player) {
+        this.players.push(player);
+    }
+
+    /**
      * Takes a shot.
-     * @param position {*} The position.
      * @param vector {*} The vector.
      */
-    GameLogic.prototype.takeShot = function(position, vector) {
-        this.gui.takeShot(position, vector);
+    GameLogic.prototype.takeShot = function(vector) {
+        this.gui.takeShot(this.gui.getCuePosition(), vector);
     };
 
     /**
      * Takes the next turn.
      */
     GameLogic.prototype.takeNextTurn = function() {
-        this.takeShot(this.gui.getCuePosition(), GameLogic.BREAK_VECTOR);
+        if (!this.goAgain) {
+           this.incrementPlayer();
+        }
+        else {
+            this.goAgain = false;
+        }
+        this.notifyPlayer();
     };
+
+    GameLogic.prototype.incrementPlayer = function() {
+        this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
+    }
+
+    GameLogic.prototype.notifyPlayer = function() {
+        console.log("Notifying player " + this.currentPlayer + " to make a move");
+        this.getCurrentPlayer().makeMove();
+    }
+
+    GameLogic.prototype.getCurrentPlayer = function() {
+        return this.players[this.currentPlayer];
+    }
+
+    GameLogic.prototype.getMyBalls = function(player) {
+        if (player.ballSet === undefined) {
+            var merged = [];
+            merged = merged.concat.apply(merged, GameLogic.BALL_SETS);
+            return merged;
+            
+        }
+        return GameLogic.BALL_SETS[player.ballSet];
+    }
 
     return GameLogic;
 });
