@@ -34,18 +34,17 @@ define(function(require) {
         var distance = {x: pocket.x - ball.position.x , y: pocket.y - ball.position.y};
 
         // r = mv/b, v = br/m
-        var vel = {x: frictionConstant * distance.x / ball.mass, y: frictionConstant * distance.y / ball.mass};
+        return {x: frictionConstant * distance.x / ball.mass, y: frictionConstant * distance.y / ball.mass};
     }
 
-
-    AI.prototype.getTheta = function(cue, ball, pocket) {
+    AI.prototype.getVectorCueToBall = function(cue, ball, pocket) {
         var minV = this.minVtoPocket(ball, pocket);
         var theta = Math.atan(minV.y / minV.x);
-        var hyp = 2 * ball.radius;
-        
-    }
 
-    AI.prototype.getVectorCueToBall = function(cue, ball) {
+        var hyp = 2 * ball.radius;
+        var newCue = {x: ball.x - hyp * Math.cos(theta), y: ball.y - hyp * Math.sin(theta)};
+
+
     }
 
 
