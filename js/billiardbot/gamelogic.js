@@ -33,7 +33,7 @@ define(function(require) {
      */
     GameLogic.BALL_COLORS = ["yellow", "blue", "red", "purple", "orange", "green", "maroon",
         "black",
-        "yellow", "blue", "red", "purple", "orange", "green", "maroon"
+        "LemonChiffon", "SkyBlue", "Tomato", "MediumPurple", "LightSalmon", "LightGreen", "IndianRed"
     ];
 
     /**
