@@ -34,11 +34,12 @@ define(function(require) {
         var distance = {x: pocket.x - ball.position.x , y: pocket.y - ball.position.y};
 
         // r = mv/b, v = br/m
-        var vel = (x: frictionConstant * distance.x / ball.mass, y: frictionConstant * distance.y / ball.mass)
+        var vel = (x: frictionConstant * distance.x / ball.mass, y: frictionConstant * distance.y / ball.mass);
     }
 
 
-    AI.prototype.getTheta = function(cue, ball) {
+    AI.prototype.getTheta = function(cue, ball, pocket) {
+        var minV = this.minVtoPocket(ball, pocket);
     }
 
     AI.prototype.getVectorCueToBall = function(cue, ball) {
