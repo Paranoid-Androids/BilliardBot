@@ -28,6 +28,22 @@ define(function(require) {
         this.gameLogic.takeShot(AI.BREAK_VECTOR);
     }
 
+    AI.prototype.minVtoPocket = function(ball, pocket) {
+        var frictionConstant = ball.frictionAir;
+
+        var distance = {x: pocket.x - ball.position.x , y: pocket.y - ball.position.y};
+
+        // r = mv/b, v = br/m
+        var vel = (x: frictionConstant * distance.x / ball.mass, y: frictionConstant * distance.y / ball.mass)
+    }
+
+
+    AI.prototype.getTheta = function(cue, ball) {
+    }
+
+    AI.prototype.getVectorCueToBall = function(cue, ball) {
+    }
+
 
     return AI;
 });
