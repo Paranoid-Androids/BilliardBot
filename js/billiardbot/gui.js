@@ -124,6 +124,15 @@ define(function(require) {
         }
     }
 
+    GUI.POCKETS = [
+        {x: 0, y: 0, radius: GUI.POCKET_RADIUS_CORNER},
+        {x: GUI.WIDTH, y: 0, radius: GUI.POCKET_RADIUS_CORNER},
+        {x: 0, y: GUI.HEIGHT, radius: GUI.POCKET_RADIUS_CORNER},
+        {x: GUI.WIDTH, y: GUI.HEIGHT, radius: GUI.POCKET_RADIUS_CORNER},
+        {x: GUI.WIDTH / 2, y: 0, radius: GUI.POCKET_RADIUS_SIDE},
+        {x: GUI.WIDTH / 2, y: GUI.HEIGHT, radius: GUI.POCKET_RADIUS_SIDE},
+    ]
+
     /**
      * Whether the GUI is currently idle and waiting for someone to take a
      * shot.
@@ -217,21 +226,9 @@ define(function(require) {
         ]);
 
         // Add pockets.
-        World.add(this.engine.world, [
-            // Top-left pocket.
-            Bodies.circle(0, 0, GUI.POCKET_RADIUS_CORNER, GUI.POCKET_OPTIONS),
-            // Top-right pocket.
-            Bodies.circle(GUI.WIDTH, 0, GUI.POCKET_RADIUS_CORNER, GUI.POCKET_OPTIONS),
-            // Bottom-left pocket.
-            Bodies.circle(0, GUI.HEIGHT, GUI.POCKET_RADIUS_CORNER, GUI.POCKET_OPTIONS),
-            // Bottom-right pocket.
-            Bodies.circle(GUI.WIDTH, GUI.HEIGHT, GUI.POCKET_RADIUS_CORNER, GUI.POCKET_OPTIONS),
-            // Top side pocket.
-            Bodies.circle(GUI.WIDTH / 2, 0, GUI.POCKET_RADIUS_SIDE, GUI.POCKET_OPTIONS),
-            // Bottom side pocket.
-            Bodies.circle(GUI.WIDTH / 2, GUI.HEIGHT, GUI.POCKET_RADIUS_SIDE,
-                GUI.POCKET_OPTIONS)
-        ]);
+        GUI.POCKETS.forEach(function (pocket) {
+            World.add(self.engine.world, Bodies.circle(pocket.x, pocket.y, pocket.radius, GUI.POCKET_OPTIONS));
+        });
 
         // Create the rack.
         this.setupRack();
@@ -239,7 +236,7 @@ define(function(require) {
         // Create the cue ball.
         this.placeCue();
 
-        Events.on(this.engine, 'tick', function(event) {
+        Events.on(this.engine, 'afterTick', function(event) {
             if (!self.waitingForShot) {
                 // Remove balls that fall in pockets.
                 self.removePocketedBalls();
@@ -312,6 +309,10 @@ define(function(require) {
         });
 
         return ballsOnTable;
+    }
+
+    GUI.prototype.getPockets = function() {
+        return GUI.POCKETS;
     }
 
     /**

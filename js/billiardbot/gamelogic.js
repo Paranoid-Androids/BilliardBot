@@ -218,6 +218,10 @@ define(function(require) {
         return myBalls;
     }
 
+    GameLogic.prototype.getPockets = function() {
+        return this.gui.getPockets();
+    }
+
     /**
      * determines whether the current player has won or lost
      */
