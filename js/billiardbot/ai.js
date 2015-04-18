@@ -40,6 +40,9 @@ define(function(require) {
 
     AI.prototype.getTheta = function(cue, ball, pocket) {
         var minV = this.minVtoPocket(ball, pocket);
+        var theta = Math.atan(minV.y / minV.x);
+        var hyp = 2 * ball.radius;
+        
     }
 
     AI.prototype.getVectorCueToBall = function(cue, ball) {
