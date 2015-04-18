@@ -16,6 +16,15 @@ define(function(require) {
     }
 
     AI.prototype.makeMove = function() {
+        var self = this;
+        var pockets = this.gameLogic.getPockets();
+        var balls = this.gameLogic.getMyBalls(this);
+
+        balls.forEach(function(ball) {
+            pockets.forEach(function(pocket) {
+
+            });
+        });
         this.gameLogic.takeShot(AI.BREAK_VECTOR);
     }
 
