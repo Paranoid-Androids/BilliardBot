@@ -194,8 +194,9 @@ define(function(require) {
             }
         });
 
-        //Temporary fix: show balls sunk as text
+        // TODO: Temporary fix: show balls sunk as text.
         this.ballsSunk = document.getElementById("balls-sunk");
+        this.currentPlayer = document.getElementById("current-player");
 
         // Add some some walls to the world.
         // Note that these values were carefully calculated by first hiding all the pockets and
@@ -297,6 +298,14 @@ define(function(require) {
             GUI.BALL_OPTIONS);
         this.cue.label = GameLogic.BALL_LABEL_PREFIX + "cue";
         World.add(this.engine.world, this.cue);
+    }
+
+    /**
+     * Shows which player is currently taking their turn.
+     * @param {number} player The active player.
+     */
+    GUI.prototype.updateCurrentPlayer = function(player) {
+        this.currentPlayer.innerHTML = player;
     }
 
     GUI.prototype.getBallsOnTable = function() {

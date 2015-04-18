@@ -191,6 +191,7 @@ define(function(require) {
 
     GameLogic.prototype.notifyPlayer = function() {
         console.log("Notifying player " + this.currentPlayer + " to make a move");
+        this.gui.updateCurrentPlayer(this.currentPlayer);
         this.getCurrentPlayer().makeMove();
     }
 
