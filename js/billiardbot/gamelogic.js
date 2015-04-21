@@ -169,8 +169,17 @@ define(function(require) {
      * @param vector {*} The vector.
      */
     GameLogic.prototype.takeShot = function(vector) {
-        this.gui.takeShot(this.gui.getCuePosition(), vector);
+        this.gui.takeShot(this.gui.getCue().position, vector);
     };
+
+    GameLogic.prototype.takeShot2 = function(vector, ball) {
+        this.gui.takeShot2(ball, ball.position, vector);  
+    }
+
+
+    GameLogic.prototype.getCue = function() {
+        return this.gui.getCue();
+    }
 
     /**
      * Takes the next turn.

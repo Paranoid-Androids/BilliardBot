@@ -64,7 +64,7 @@ define(function(require) {
         friction: 0.0001,
         restitution: 0.92,
         render: {
-            lineWidth: 1,
+            lineWidth: 0,
             strokeStyle: "transparent",
             fillStyle: "white"
         }
@@ -272,6 +272,11 @@ define(function(require) {
         this.waitingForShot = false;
     }
 
+    GUI.prototype.takeShot2 = function(ball, position, forceVector) {
+        Body.applyForce(ball, position, forceVector);
+        this.waitingForShot = false;
+    }
+
     /**
      * @return {!number} The width of the table, in pixels.
      */
@@ -289,13 +294,14 @@ define(function(require) {
     /**
      * @return {!object} The position of the cue ball.
      */
-    GUI.prototype.getCuePosition = function() {
-        return this.cue.position;
+    GUI.prototype.getCue = function() {
+        return this.cue;
     }
 
     GUI.prototype.placeCue = function(position) {
         this.cue = Bodies.circle(GUI.WIDTH / 4, GUI.HEIGHT / 2, GUI.BALL_RADIUS,
             GUI.BALL_OPTIONS);
+        Body.setMass(this.cue, .17);
         this.cue.label = GameLogic.BALL_LABEL_PREFIX + "cue";
         World.add(this.engine.world, this.cue);
     }
@@ -356,6 +362,7 @@ define(function(require) {
             var currentY = y
             for (var j = 0; j < ballsPerRow; j++) {
                 var ball = Bodies.circle(x, currentY, GUI.BALL_RADIUS, GUI.BALL_OPTIONS);
+                Body.setMass(ball, .17);
                 ball.render.fillStyle = GameLogic.BALL_COLORS[ballList[currentBall] - 1];
                 ball.label = GameLogic.BALL_LABEL_PREFIX + ballList[currentBall];
 
