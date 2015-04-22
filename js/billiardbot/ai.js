@@ -129,9 +129,12 @@ define(function(require) {
             return actions.reduce(function(m, k) {
                 // TODO: memoize for performance.
                 successor = self.generateSuccessor(agent, k);
-                score = self.expectimax(successor,
-                    depth - 1 if agent == self.totalAgents() - 1 else depth,
-                    (agent + 1) % self.totalAgents());
+                if (agent == self.totalAgents() - 1) {
+                    score = self.expectimax(successor, depth - 1, (agent + 1) % self.totalAgents());
+                } else {
+                    score = self.expectimax(successor, depth, (agent + 1) % self.totalAgents());
+                }
+
                 if (m == null || score > m.score) {
                     return {score: score, successor: successor}
                 } else {
