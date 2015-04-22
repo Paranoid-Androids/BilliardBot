@@ -49,7 +49,6 @@ define(function(require) {
                         // take the better theta value
                         if (numberOfObstacles > 0 && numberOfObstacles <= totalObstacles) {
                             if (deltaTheta < bestTheta) {
-                                    console.log("A: shooting at: " + ball.label + " " + ball.render.fillStyle + "\ttheta: " + deltaTheta + "\tobstacles: " + numberOfObstacles);
                                     bestTheta = deltaTheta;
                                     force = bestShot.force;
                                     totalObstacles = numberOfObstacles;
@@ -60,7 +59,6 @@ define(function(require) {
                             // there are no obstacles, and the current best shot has obstacles
                             // automatically take this new shot
                             if (totalObstacles != 0) {
-                                console.log("B: shooting at: " + ball.label + " " + ball.render.fillStyle + "\ttheta: " + deltaTheta + "\tobstacles: " + numberOfObstacles);
                                 totalObstacles = 0;
                                 bestTheta = deltaTheta;
                                 force = bestShot.force;
@@ -70,7 +68,6 @@ define(function(require) {
                             // only take a better theta value
                             else {
                                 if (deltaTheta < bestTheta) {
-                                    console.log("C: shooting at: " + ball.label + " " + ball.render.fillStyle + "\ttheta: " + deltaTheta + "\tobstacles: " + numberOfObstacles);
                                     bestTheta = deltaTheta;
                                     force = bestShot.force;
                                     shootingAtBall = ball;
