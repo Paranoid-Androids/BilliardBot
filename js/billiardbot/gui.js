@@ -23,7 +23,7 @@ define(function(require) {
      * The simulation speed of the engine. 1.0 is normal; higher values make
      * the game faster.
      */
-    GUI.TIME_SCALE = 1.0;
+    GUI.TIME_SCALE = 0.7;
 
     /**
      * The width of the table, in meters.
