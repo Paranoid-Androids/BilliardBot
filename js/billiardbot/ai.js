@@ -33,7 +33,7 @@ define(function(require) {
             var force;
             balls.forEach(function(ball) {
                 pockets.forEach(function(pocket) {
-                    var bestShot = self.getCueVelocityToBall(cue, ball, pocket);
+                    var bestShot = self.getCueForceToBall(cue, ball, pocket);
                     if (Math.abs(bestShot.theta - (Math.PI / 2)) < bestTheta) {
                         bestTheta = Math.abs(bestShot.theta - (Math.PI / 2));
                         force = bestShot.force;
