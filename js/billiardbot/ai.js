@@ -29,17 +29,23 @@ define(function(require) {
             this.gameLogic.takeShot(AI.BREAK_VECTOR);
         }
         else {
-            var ball = balls[10];
-            var pocket = pockets[0];
-            var velocityVector = self.getVectorCueToBall(cue, ball, pocket);            
-            console.log(velocityVector);
-            this.gameLogic.takeShot(velocityVector);
-            // balls.forEach(function(ball) {
-            //     pockets.forEach(function(pocket) {
-            //         var velocityVector = self.getVectorCueToBall(cue, ball, pocket);
-            //         console.log("Ball: " + ball.label + "\tvector: " +velocityVector.x + ", " + velocityVector.y + "\tfor pocket: " + pocket.x + ", " + pocket.y);
-            //     });
-            // });
+            var biggestTheta = Math.PI / 2;
+            var force;
+            var aBall;
+            balls.forEach(function(ball) {
+                pockets.forEach(function(pocket) {
+                    var velocityVector = self.getVectorCueToBall(cue, ball, pocket);
+                    if (Math.abs(velocityVector.theta - (Math.PI / 2)) < biggestTheta) {
+                        biggestTheta = Math.abs(velocityVector.theta - (Math.PI / 2));
+                        force = velocityVector.force;
+                        aBall = ball;
+                    }
+                });
+            });
+
+            console.log("aiming for ball: " + aBall.label);
+            console.log(force);
+            this.gameLogic.takeShot(force);
         }
 
         // Alex Work
