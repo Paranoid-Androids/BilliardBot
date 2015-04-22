@@ -41,6 +41,21 @@ define(function(require) {
             //     });
             // });
         }
+
+        // Alex Work
+        // options = [];
+        // balls.forEach(function(ball) {
+        //     ballOpts = [];
+        //     pockets.forEach(function(pocket) {
+        //         var attempt = this.minVtoPocket();
+        //         var obstacles = Matter.Query.ray(balls, {x: cue.x, y: cue.y}, attempt.newCue, ball.radius);
+        //         if (obstacles.size() > 2) {
+        //            ballOpts.add(attempt);
+        //         }
+        //     });
+        //     options.add(expectimax(ballOpts));
+        // });
+        // this.gameLogic.takeShot(expectimax(options));
     }
 
     AI.prototype.minVtoPocket = function(ball, pocket) {
@@ -52,33 +67,30 @@ define(function(require) {
         return {x: frictionConstant * distance.x / ball.mass, y: frictionConstant * distance.y / ball.mass};
     }
 
-    AI.prototype.getVectorCueToBall = function(cue, ball, pocket) {
-        var minV = this.minVtoPocket(ball, pocket);
+    AI.prototype.getCueVelocityToBall = function(cue, ball, pocket) {
+        var minV2P = this.minVtoPocket(ball, pocket);
 
-        // var forceX = (Math.pow(minV.x, 2) * ball.mass) / (2 * (pocket.x - ball.position.x));
-        // var forceY = (Math.pow(minV.y, 2) * ball.mass) / (2 * (pocket.y - ball.position.y));
-        // console.log(forceX);
-        // console.log(forceY);
-        // var force = Vector.div({x: forceX, y: forceY}, 50);
-        // console.log(force);
-        // return force;
-        var theta = Math.atan(minV.y / minV.x);
+        var theta = Math.atan(minV2P.y / minV2P.x);
+        var hypotenuese = 2 * ball.radius;
 
-        var hyp = 2 * ball.circleRadius;
-        var newCue = {x: ball.position.x + hyp * Math.cos(theta), y: ball.position.y + hyp * Math.sin(theta)};
+        var contactPoint = {x: ball.x - hypotenuese * Math.cos(theta), y: ball.y - hypotenuese * Math.sin(theta)};
 
-        var velocityMagnitude = Vector.magnitude(minV) / Math.cos(theta);
-        var cueDistanceTraveled = {x: newCue.x - cue.position.x, y: newCue.y - cue.position.y};
+        // find req cue velocity
+        var velocityMagnitude = Vector.magnitude(minV2P) / Math.cos(theta);
+        var cueDistanceTraveled = {x: contactPoint.x - cue.position.x, y: contactPoint.y - cue.position.y};
         var velocityVector = Vector.mult(Vector.normalise(cueDistanceTraveled), velocityMagnitude);
 
+        // find force required to impart that velocity
         var forceX = (Math.pow(velocityVector.x, 2) * ball.mass) / (2 * cueDistanceTraveled.x);
         var forceY = (Math.pow(velocityVector.y, 2) * ball.mass) / (2 * cueDistanceTraveled.y);
 
         var force = Vector.div({x: forceX, y: forceY}, 200);
-        var retValue = {force: force, theta: theta};
-        return retValue;
+        return {cueContact: contactPoint, force: force, theta: theta};
     }
 
+    AI.prototype.expectimax = function(balls, pocket, ball, cue, shot) {
+        
+    }
 
     return AI;
 });
