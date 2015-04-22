@@ -90,7 +90,10 @@ define(function(require) {
         var forceX = (Math.pow(velocityVector.x, 2) * ball.mass) / (2 * cueDistanceTraveled.x);
         var forceY = (Math.pow(velocityVector.y, 2) * ball.mass) / (2 * cueDistanceTraveled.y);
 
-        var force = Vector.mult(Vector.normalise({x: forceX, y: forceY}), .01);
+        var force = {x: forceX, y: forceY};
+        if( Matter.Vector.magnitude(force) > 0.01) {
+            force = Vector.mult(Vector.normalise(force), .01);
+        }
         return {cueContact: contactPoint, force: force, theta: theta};
     }
 

@@ -305,7 +305,15 @@ define(function(require) {
         return this.cue;
     }
 
-    GUI.prototype.placeCue = function(position) {
+    GUI.prototype.placeBall = function(position, ball) {
+        this.cue = Bodies.circle(GUI.WIDTH / 4, GUI.HEIGHT / 2, GUI.BALL_RADIUS,
+            GUI.BALL_OPTIONS);
+        Body.setMass(this.cue, .17);
+        this.cue.label = GameLogic.BALL_LABEL_PREFIX + "cue";
+        World.add(this.engine.world, this.cue);
+    }
+
+    GUI.prototype.placeCue = function() {
         this.cue = Bodies.circle(GUI.WIDTH / 4, GUI.HEIGHT / 2, GUI.BALL_RADIUS,
             GUI.BALL_OPTIONS);
         Body.setMass(this.cue, .17);
