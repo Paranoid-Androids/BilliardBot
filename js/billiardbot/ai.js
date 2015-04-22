@@ -31,17 +31,20 @@ define(function(require) {
         else {
             var bestTheta = Math.PI / 2;
             var force;
+            var aBall;
             balls.forEach(function(ball) {
                 pockets.forEach(function(pocket) {
                     var bestShot = self.getCueForceToBall(cue, ball, pocket);
-                    if (Math.abs(bestShot.theta - (Math.PI / 2)) < bestTheta) {
-                        bestTheta = Math.abs(bestShot.theta - (Math.PI / 2));
+                    var thetaToBall = self.getThetaToBall(cue, ball);
+
+                    if (Math.abs(bestShot.theta - thetaToBall) < bestTheta) {
+                        bestTheta = Math.abs(bestShot.theta - thetaToBall);
                         force = bestShot.force;
+                        aBall = ball;
                     }
                 });
             });
 
-            console.log(force);
             this.gameLogic.takeShot(force);
         }
 
@@ -73,7 +76,7 @@ define(function(require) {
     AI.prototype.getCueForceToBall = function(cue, ball, pocket) {
         var minV2P = this.minVtoPocket(ball, pocket);
 
-        var theta = Math.atan(minV2P.y / minV2P.x);
+        var theta = Math.atan2(minV2P.y, minV2P.x);
         var hypotenuese = 2 * ball.circleRadius;
 
         var contactPoint = {x: ball.position.x - hypotenuese * Math.cos(theta), y: ball.position.y - hypotenuese * Math.sin(theta)};
@@ -87,8 +90,14 @@ define(function(require) {
         var forceX = (Math.pow(velocityVector.x, 2) * ball.mass) / (2 * cueDistanceTraveled.x);
         var forceY = (Math.pow(velocityVector.y, 2) * ball.mass) / (2 * cueDistanceTraveled.y);
 
-        var force = Vector.div({x: forceX, y: forceY}, 200);
+        var force = Vector.mult(Vector.normalise({x: forceX, y: forceY}), .01);
         return {cueContact: contactPoint, force: force, theta: theta};
+    }
+
+    AI.prototype.getThetaToBall = function(cue, ball) {
+        var distanceX = ball.position.x - cue.position.x;
+        var distanceY = ball.position.y - cue.position.y;
+        return Math.atan2(distanceY, distanceX);
     }
 
     // node = {balls, cue, shot, children, score}
