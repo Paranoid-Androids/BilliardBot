@@ -29,21 +29,18 @@ define(function(require) {
             this.gameLogic.takeShot(AI.BREAK_VECTOR);
         }
         else {
-            var biggestTheta = Math.PI / 2;
+            var bestTheta = Math.PI / 2;
             var force;
-            var aBall;
             balls.forEach(function(ball) {
                 pockets.forEach(function(pocket) {
-                    var velocityVector = self.getVectorCueToBall(cue, ball, pocket);
-                    if (Math.abs(velocityVector.theta - (Math.PI / 2)) < biggestTheta) {
-                        biggestTheta = Math.abs(velocityVector.theta - (Math.PI / 2));
-                        force = velocityVector.force;
-                        aBall = ball;
+                    var bestShot = self.getCueVelocityToBall(cue, ball, pocket);
+                    if (Math.abs(bestShot.theta - (Math.PI / 2)) < bestTheta) {
+                        bestTheta = Math.abs(bestShot.theta - (Math.PI / 2));
+                        force = bestShot.force;
                     }
                 });
             });
 
-            console.log("aiming for ball: " + aBall.label);
             console.log(force);
             this.gameLogic.takeShot(force);
         }
@@ -77,9 +74,9 @@ define(function(require) {
         var minV2P = this.minVtoPocket(ball, pocket);
 
         var theta = Math.atan(minV2P.y / minV2P.x);
-        var hypotenuese = 2 * ball.radius;
+        var hypotenuese = 2 * ball.circleRadius;
 
-        var contactPoint = {x: ball.x - hypotenuese * Math.cos(theta), y: ball.y - hypotenuese * Math.sin(theta)};
+        var contactPoint = {x: ball.position.x - hypotenuese * Math.cos(theta), y: ball.position.y - hypotenuese * Math.sin(theta)};
 
         // find req cue velocity
         var velocityMagnitude = Vector.magnitude(minV2P) / Math.cos(theta);
