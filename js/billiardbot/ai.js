@@ -30,7 +30,7 @@ define(function(require) {
         }
         else {
             var ball = balls[10];
-            var pocket = pockets[4];
+            var pocket = pockets[0];
             var velocityVector = self.getVectorCueToBall(cue, ball, pocket);            
             console.log(velocityVector);
             this.gameLogic.takeShot(velocityVector);
@@ -70,17 +70,13 @@ define(function(require) {
         var velocityMagnitude = Vector.magnitude(minV) / Math.cos(theta);
         var cueDistanceTraveled = {x: newCue.x - cue.position.x, y: newCue.y - cue.position.y};
         var velocityVector = Vector.mult(Vector.normalise(cueDistanceTraveled), velocityMagnitude);
-        console.log(minV);
-        console.log(cueDistanceTraveled);
-        console.log(velocityVector);
-        console.log(newCue);
 
         var forceX = (Math.pow(velocityVector.x, 2) * ball.mass) / (2 * cueDistanceTraveled.x);
         var forceY = (Math.pow(velocityVector.y, 2) * ball.mass) / (2 * cueDistanceTraveled.y);
 
-        var force = Vector.div({x: forceX, y: forceY}, 100);
-        console.log(force);
-        return force;
+        var force = Vector.div({x: forceX, y: forceY}, 200);
+        var retValue = {force: force, theta: theta};
+        return retValue;
     }
 
 
