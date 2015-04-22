@@ -305,20 +305,25 @@ define(function(require) {
         return this.cue;
     }
 
+    GUI.prototype.createBall = function(position) {
+        var ball = Bodies.circle(position.x, position.y, GUI.BALL_RADIUS, GUI.BALL_OPTIONS);
+        Body.setMass(ball, .17);
+        return ball;
+    }
+
     GUI.prototype.placeBall = function(position, ball) {
-        this.cue = Bodies.circle(GUI.WIDTH / 4, GUI.HEIGHT / 2, GUI.BALL_RADIUS,
-            GUI.BALL_OPTIONS);
-        Body.setMass(this.cue, .17);
+        ball.position = position;
+        World.add(this.engine.world, ball);
+    }
+
+    GUI.prototype.placeCueWithP = function(position) {
+        this.cue = this.createBall(position);
         this.cue.label = GameLogic.BALL_LABEL_PREFIX + "cue";
-        World.add(this.engine.world, this.cue);
+        this.placeBall(position, this.cue);
     }
 
     GUI.prototype.placeCue = function() {
-        this.cue = Bodies.circle(GUI.WIDTH / 4, GUI.HEIGHT / 2, GUI.BALL_RADIUS,
-            GUI.BALL_OPTIONS);
-        Body.setMass(this.cue, .17);
-        this.cue.label = GameLogic.BALL_LABEL_PREFIX + "cue";
-        World.add(this.engine.world, this.cue);
+        this.placeCueWithP({x: GUI.WIDTH / 4, y: GUI.HEIGHT / 2});
     }
 
     /**
@@ -367,17 +372,17 @@ define(function(require) {
      * Sets up the default rack.
      */
     GUI.prototype.setupRack = function() {
-        var x = (3 * GUI.WIDTH / 4);
-        var y = GUI.HEIGHT / 2;
+        var ball_x = (3 * GUI.WIDTH / 4);
+        var ball_y = GUI.HEIGHT / 2;
         var ballsPerRow = 1;
         var ballList = this.listener.createInitialBallList();
         var currentBall = 0;
 
         for (var i = 0; i < 5; i++) {
-            var currentY = y
+            var currentY = ball_y
             for (var j = 0; j < ballsPerRow; j++) {
-                var ball = Bodies.circle(x, currentY, GUI.BALL_RADIUS, GUI.BALL_OPTIONS);
-                Body.setMass(ball, .17);
+
+                var ball = this.createBall({x:ball_x, y:currentY});
                 ball.render.fillStyle = GameLogic.BALL_COLORS[ballList[currentBall] - 1];
                 ball.label = GameLogic.BALL_LABEL_PREFIX + ballList[currentBall];
 
@@ -387,9 +392,8 @@ define(function(require) {
             }
             ballsPerRow += 1;
 
-            x += Math.sqrt(Math.pow(GUI.BALL_RADIUS * 2, 2) - Math.pow(GUI.BALL_RADIUS,
-                2));
-            y -= GUI.BALL_RADIUS;
+            ball_x += Math.sqrt(Math.pow(GUI.BALL_RADIUS * 2, 2) - Math.pow(GUI.BALL_RADIUS, 2));
+            ball_y -= GUI.BALL_RADIUS;
         }
     }
 
