@@ -73,7 +73,7 @@ define(function(require) {
         return {x: frictionConstant * distance.x / ball.mass, y: frictionConstant * distance.y / ball.mass};
     }
 
-    AI.prototype.getCueVelocityToBall = function(cue, ball, pocket) {
+    AI.prototype.getCueForceToBall = function(cue, ball, pocket) {
         var minV2P = this.minVtoPocket(ball, pocket);
 
         var theta = Math.atan(minV2P.y / minV2P.x);
@@ -94,8 +94,13 @@ define(function(require) {
         return {cueContact: contactPoint, force: force, theta: theta};
     }
 
-    AI.prototype.expectimax = function(balls, pocket, ball, cue, shot) {
-        
+    // node = {balls, cue, shot, children, score}
+    AI.prototype.expectimax = function(node, depth) {
+        if (depth == 0) {
+            return node.score;
+        } else {
+            spawnChildren(node, depth);
+        }
     }
 
     return AI;
