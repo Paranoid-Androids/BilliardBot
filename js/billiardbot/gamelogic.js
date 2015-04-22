@@ -125,7 +125,7 @@ define(function(require) {
                     var player = self.getCurrentPlayer();
                     var setIndex = GameLogic.BALL_SETS.indexOf(set);
                     if (player.ballSet === undefined) {
-                        player.ballSet = setIndex;
+                        self.assignBalls(player, setIndex);
                     }
                     
                     if (player.ballSet == setIndex){
@@ -206,6 +206,19 @@ define(function(require) {
 
     GameLogic.prototype.getCurrentPlayer = function() {
         return this.players[this.currentPlayer];
+    }
+
+    GameLogic.prototype.assignBalls = function(player, setIndex) {
+        player.ballSet = setIndex;
+        var otherIndex = (setIndex + 1) % GameLogic.BALL_SETS.length;
+        console.log(setIndex);
+        console.log(otherIndex);
+        for (var i = 0; i < this.players.length; i++) {
+            if (this.currentPlayer != i) {
+                this.players[i].ballSet = otherIndex;
+            }
+        }
+
     }
 
     GameLogic.prototype.getMyBalls = function(player) {
