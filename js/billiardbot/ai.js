@@ -3,6 +3,7 @@ define(function(require) {
 
     var Matter = require('third_party/matter');
     var Vector = Matter.Vector;
+    var Query = Matter.Query;
     var GUI = require('gui');
 
     /**
@@ -31,20 +32,56 @@ define(function(require) {
         else {
             var bestTheta = Math.PI / 2;
             var force;
-            var aBall;
+            var totalObstacles = balls.length; //set to be the number of balls as an upper bound
+            var shootingAtBall;
+
             balls.forEach(function(ball) {
                 pockets.forEach(function(pocket) {
                     var bestShot = self.getCueForceToBall(cue, ball, pocket);
                     var thetaToBall = self.getThetaToBall(cue, ball);
+                    var numberOfObstacles = self.getObstacleCount(cue, ball, pocket);
 
-                    if (Math.abs(bestShot.theta - thetaToBall) < bestTheta) {
-                        bestTheta = Math.abs(bestShot.theta - thetaToBall);
-                        force = bestShot.force;
-                        aBall = ball;
+                    var deltaTheta = Math.abs(bestShot.theta - thetaToBall);
+
+                    if (deltaTheta < (Math.PI / 2)) {
+
+                        // number of obstacles is > 0 but <= totalObstacles
+                        // take the better theta value
+                        if (numberOfObstacles > 0 && numberOfObstacles <= totalObstacles) {
+                            if (deltaTheta < bestTheta) {
+                                    console.log("A: shooting at: " + ball.label + " " + ball.render.fillStyle + "\ttheta: " + deltaTheta + "\tobstacles: " + numberOfObstacles);
+                                    bestTheta = deltaTheta;
+                                    force = bestShot.force;
+                                    totalObstacles = numberOfObstacles;
+                                    shootingAtBall = ball;
+                                }
+                        }
+                        else if (numberOfObstacles == 0){
+                            // there are no obstacles, and the current best shot has obstacles
+                            // automatically take this new shot
+                            if (totalObstacles != 0) {
+                                console.log("B: shooting at: " + ball.label + " " + ball.render.fillStyle + "\ttheta: " + deltaTheta + "\tobstacles: " + numberOfObstacles);
+                                totalObstacles = 0;
+                                bestTheta = deltaTheta;
+                                force = bestShot.force;
+                                shootingAtBall = ball;
+                            }
+                            // no obstacles, but the current shot also has no obstacles
+                            // only take a better theta value
+                            else {
+                                if (deltaTheta < bestTheta) {
+                                    console.log("C: shooting at: " + ball.label + " " + ball.render.fillStyle + "\ttheta: " + deltaTheta + "\tobstacles: " + numberOfObstacles);
+                                    bestTheta = deltaTheta;
+                                    force = bestShot.force;
+                                    shootingAtBall = ball;
+                                }
+                            }
+                        }
                     }
                 });
             });
 
+            console.log("shooting at: " + shootingAtBall.label + " " + shootingAtBall.render.fillStyle);
             this.gameLogic.takeShot(force);
         }
 
@@ -101,6 +138,24 @@ define(function(require) {
         var distanceX = ball.position.x - cue.position.x;
         var distanceY = ball.position.y - cue.position.y;
         return Math.atan2(distanceY, distanceX);
+    }
+
+    AI.prototype.getObstacleCount = function(cue, ball, pocket) {
+        var ballsOnTable = this.gameLogic.getBallsOnTable();
+        var ballIndex = ballsOnTable.indexOf(ball);
+        if (ballIndex != -1) {
+            ballsOnTable.splice(ballIndex, 1);
+        }
+
+        var cueIndex = ballsOnTable.indexOf(cue);
+        if (cueIndex != -1) {
+            ballsOnTable.splice(cueIndex, 1);
+        }
+
+        var cueToBallObstacles = Query.ray(ballsOnTable, cue.position, ball.position, ball.radius * 2);
+        var ballToPocketObstacles = Query.ray(ballsOnTable, ball.position, pocket, ball.radius * 2);
+
+        return cueToBallObstacles.length + ballToPocketObstacles.length;
     }
 
     AI.prototype.totalAgents = function() {

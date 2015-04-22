@@ -241,6 +241,10 @@ define(function(require) {
         return myBalls;
     }
 
+    GameLogic.prototype.getBallsOnTable = function() {
+        return this.gui.getBallsOnTable();
+    }
+
     GameLogic.prototype.getPockets = function() {
         return this.gui.getPockets();
     }
