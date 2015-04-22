@@ -15,7 +15,8 @@ define(function(require) {
      */
     common.GameType = {
         /** Basic game of pool where the AI plays by itself. */
-        SINGLE_AI: 'Single AI Game'
+        SINGLE_AI: 'Single AI Game',
+        DOUBLE_AI: 'Two-player AI Game'
     };
 
     /**

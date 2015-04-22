@@ -100,13 +100,66 @@ define(function(require) {
         return Math.atan2(distanceY, distanceX);
     }
 
+    AI.prototype.totalAgents = function() {
+        return 2;
+    }
+
     // node = {balls, cue, shot, children, score}
-    AI.prototype.expectimax = function(node, depth) {
-        if (depth == 0) {
-            return node.score;
+    AI.prototype.expectimax = function(node, depth, agent) {
+        var self = this;
+
+        if (depth == 0 || node.isWin() || node.isLose()) {
+            return evaluationFunction(score);
+        } else if (agent == 0) {
+            return node.legalActions[agent].reduce(function(m, k) {
+                // TODO: memoize for performance.
+                successor = self.generateSuccessor(agent, k);
+                score = self.expectimax(successor, depth, (agent + 1) % self.totalAgents());
+                if (m == null || score > m.score) {
+                    return {score: score, successor: successor}
+                } else {
+                    return m;
+                }
+
+            });
+//            spawnChildren(node, depth);
         } else {
-            spawnChildren(node, depth);
+            actions = node.getLegalActions[agent];
+
+            return actions.reduce(function(m, k) {
+                // TODO: memoize for performance.
+                successor = self.generateSuccessor(agent, k);
+                score = self.expectimax(successor,
+                    depth - 1 if agent == self.totalAgents() - 1 else depth,
+                    (agent + 1) % self.totalAgents());
+                if (m == null || score > m.score) {
+                    return {score: score, successor: successor}
+                } else {
+                    return m;
+                }
+            });
         }
+    }
+
+    AI.prototype.evaluationFunction = AI.prototype.basicEvaluationFunction;
+
+    /**
+     * This basic function prefers less of the player's balls and more of
+     * the opponent's balls.
+     */ 
+    AI.prototype.basicEvaluationFunction = function(node) {
+        var score = 0;
+
+        // Assuming agent #0 is this agent.
+        var ballSets = node.balls;
+        for (var i = 0; i < node.balls.length; i++) {
+            if (i == 0) {
+                score -= node.balls[0];
+            } else {
+                score += node.balls[i];
+            }
+        }
+        return score;
     }
 
     return AI;

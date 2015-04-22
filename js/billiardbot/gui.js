@@ -20,6 +20,12 @@ define(function(require) {
     }
 
     /**
+     * The simulation speed of the engine. 1.0 is normal; higher values make
+     * the game faster.
+     */
+    GUI.TIME_SCALE = 1.0;
+
+    /**
      * The width of the table, in meters.
      * @constant {number}
      */
@@ -259,6 +265,7 @@ define(function(require) {
             x: 0,
             y: 0
         };
+        this.engine.timing.timeScale = GUI.TIME_SCALE;
         Engine.run(this.engine);
     };
 
