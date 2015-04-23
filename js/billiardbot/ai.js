@@ -81,21 +81,6 @@ define(function(require) {
             console.log("shooting at: " + shootingAtBall.label + " " + shootingAtBall.render.fillStyle);
             this.gameLogic.takeShot(force);
         }
-
-        // Alex Work
-        // options = [];
-        // balls.forEach(function(ball) {
-        //     ballOpts = [];
-        //     pockets.forEach(function(pocket) {
-        //         var attempt = this.minVtoPocket();
-        //         var obstacles = Matter.Query.ray(balls, {x: cue.x, y: cue.y}, attempt.newCue, ball.radius);
-        //         if (obstacles.size() > 2) {
-        //            ballOpts.add(attempt);
-        //         }
-        //     });
-        //     options.add(expectimax(ballOpts));
-        // });
-        // this.gameLogic.takeShot(expectimax(options));
     }
 
     AI.prototype.minVtoPocket = function(ball, pocket) {
@@ -125,11 +110,19 @@ define(function(require) {
         var forceY = (Math.pow(velocityVector.y, 2) * ball.mass) / (2 * cueDistanceTraveled.y);
 
         var force = {x: forceX, y: forceY};
-        if( Matter.Vector.magnitude(force) > 0.01) {
-            force = Vector.mult(Vector.normalise(force), .01);
-        }
-        return {cueContact: contactPoint, force: force, theta: theta};
+        force = Vector.mult(Vector.normalise(force), 0.01);
+        return {cueContact: contactPoint, force: force, theta: theta, cueFinal: this.getCueBallPosition( cue,ball,theta,velocityMagnitude )};
     }
+    
+    AI.prototype.getCueBallPosition = function(cue,ball,theta,velocityMagnitude){
+        var veloctiyCueBall = velocityMagnitude * Math.cos(theta);
+        var distance = Math.sqrt(veloctiyCueBall) / (2 * ball.frictionAir);
+        var distanceInX = (ball.position.x + distance * Math.cos(theta));
+        var distanceInY = (ball.position.y + distance * Math.sin(theta));
+        var cueBallPosition = {x: distanceInX , y:distanceInY};
+        return cueBallPosition;
+    }
+
 
     AI.prototype.getThetaToBall = function(cue, ball) {
         var distanceX = ball.position.x - cue.position.x;
