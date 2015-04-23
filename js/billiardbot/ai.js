@@ -39,7 +39,7 @@ define(function(require) {
                 pockets.forEach(function(pocket) {
                     var bestShot = self.getCueForceToBall(cue, ball, pocket);
                     var thetaToBall = self.getThetaToBall(cue, ball);
-                    var numberOfObstacles = self.getObstacleCount(cue, ball, pocket);
+                    var numberOfObstacles = self.getObstacleCount(cue, bestShot.cueContact, ball, pocket);
 
                     var deltaTheta = Math.abs(bestShot.theta - thetaToBall);
 
@@ -86,7 +86,7 @@ define(function(require) {
     AI.prototype.minVtoPocket = function(ball, pocket) {
         var frictionConstant = ball.frictionAir;
 
-        var distance = {x: pocket.x - ball.position.x, y: pocket.y - ball.position.y};
+        var distance = {x: pocket.target.x - ball.position.x, y: pocket.target.y - ball.position.y};
 
         // r = mv/b, v = br/m
         return {x: frictionConstant * distance.x / ball.mass, y: frictionConstant * distance.y / ball.mass};
@@ -130,7 +130,7 @@ define(function(require) {
         return Math.atan2(distanceY, distanceX);
     }
 
-    AI.prototype.getObstacleCount = function(cue, ball, pocket) {
+    AI.prototype.getObstacleCount = function(cue, cueContact, ball, pocket) {
         var ballsOnTable = this.gameLogic.getBallsOnTable();
         var ballIndex = ballsOnTable.indexOf(ball);
         if (ballIndex != -1) {
@@ -142,7 +142,7 @@ define(function(require) {
             ballsOnTable.splice(cueIndex, 1);
         }
 
-        var cueToBallObstacles = Query.ray(ballsOnTable, cue.position, ball.position, ball.radius * 2);
+        var cueToBallObstacles = Query.ray(ballsOnTable, cue.position, cueContact, ball.radius * 2);
         var ballToPocketObstacles = Query.ray(ballsOnTable, ball.position, pocket, ball.radius * 2);
 
         return cueToBallObstacles.length + ballToPocketObstacles.length;
