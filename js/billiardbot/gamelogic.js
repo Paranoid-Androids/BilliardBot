@@ -103,14 +103,16 @@ define(function(require) {
 
     /** @override */
     GameLogic.prototype.onBallsStopped = function() {
-        if(this.scratched && this.specialSink){
+        if (this.scratched && this.specialSink) {
             this.playerLose();
+            return;
         }
-        else if(this.scratched){
+        else if (this.scratched){
             this.onScratch();
         }
-        else if(this.specialSink){
+        else if (this.specialSink){
             this.playerWin();
+            return;
         }
         this.scratched = 0;
         this.specialSink = 0;
