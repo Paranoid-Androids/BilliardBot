@@ -8,12 +8,23 @@ var casper = require('casper').create({
     logLevel: 'debug'
 });
 
+// Set the timeout.
 var TIMEOUT = 60000;
 
+// Handle JS errors.
+casper.once('page.error', function onError(msg, trace) {
+    // Workaround for GUI.endGame() causing some errors here.
+    if (!this.exists('#gameEnded')) {
+        this.die('Test error: ' + msg + '\n\n' + trace);
+    }
+});
+
+// Show log messages in the console.
 casper.on('remote.message', function(message) {
     this.echo('[LOG]: ' + message);
 });
 
+// Find all the .html files in the tests directory.
 var files = fs.list(fs.workingDirectory);
 var tests = [];
 files.forEach(function(file) {
@@ -22,8 +33,9 @@ files.forEach(function(file) {
     }
 });
 
+// Run all the tests!
 casper.echo('Running ' + tests.length + ' tests with a timeout of '
-    + TIMEOUT/1000 + ' s.\n');
+    + TIMEOUT / 1000 + ' s.\n');
 
 var runHtmlTest = function() {
     var path = this.getCurrentUrl();
@@ -46,4 +58,4 @@ for (var i = 0; i < tests.length; i++) {
     }
 }
 
-casper.run(); 
+casper.run();

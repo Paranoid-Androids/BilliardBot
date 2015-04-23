@@ -30,11 +30,11 @@ define(function(require) {
     TestUtils.notifyOnEndGame = function(GUI) {
         var oldEndGame = GUI.prototype.endGame;
         GUI.prototype.endGame = function(winningPlayer, isMultiplayer) {
-            oldEndGame.call(this);
             var notifier = document.createElement('div');
             notifier.style.display = 'none';
             notifier.id = 'gameEnded';
             document.body.appendChild(notifier);
+            oldEndGame.call(this);
         };
     }
 
