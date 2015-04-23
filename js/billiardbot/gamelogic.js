@@ -138,7 +138,7 @@ define(function(require) {
         //TODO we should ask the AI agent to place the cue ball in a smart location
         // for now, we'll just place it back in the same spot that we broke
         this.gui.placeCue();
-        self.goAgain = false;
+        this.goAgain = false;
         console.log("Player " + this.currentPlayer + " scratched!");
 
         // var self = this;
@@ -201,7 +201,7 @@ define(function(require) {
             self.ballsSunk.push(ball);
             self.gui.ballsSunk.innerHTML += self.getBallNumber(ball) + ", ";
 
-            if(self.getMyBalls(self.getCurrentPlayer()).length == 0) {
+            if(self.getBalls(self.getCurrentPlayer().ballSet).length == 0) {
                 self.getCurrentPlayer().ballSet = this.LOCKED_SET;
             }
         }
@@ -289,16 +289,16 @@ define(function(require) {
 
     }
 
-    GameLogic.prototype.getMyBalls = function(player) {
+    GameLogic.prototype.getBalls = function(ballSet) {
         var self = this;
         var ballsOnTable = this.gui.getBallsOnTable();
         var myBallNumbers = [];
         var myBalls = [];
-        if (player.ballSet === undefined) {
-            myBallNumbers = myBallNumbers.concat.apply(myBallNumbers, GameLogic.BALL_SETS);
+        if (ballSet === undefined) {
+            myBallNumbers = myBallNumbers.concat.apply(myBallNumbers, GameLogic.BALL_SETS.slice().splice(0, 2));
         }
         else {
-            myBallNumbers = GameLogic.BALL_SETS[player.ballSet];
+            myBallNumbers = GameLogic.BALL_SETS[ballSet];
         }
 
         ballsOnTable.forEach(function(ball) {
@@ -313,6 +313,16 @@ define(function(require) {
         return this.gui.getBallsOnTable();
     }
 
+    GameLogic.prototype.getSetIndexForBall = function(ball) {
+        for (var i = 0; i < GameLogic.BALL_SETS.length; i++) {
+            var ballSet = GameLogic.BALL_SETS[i];
+            if(ballSet.indexOf(ball) != -1) {
+                return i;
+            }
+        }
+        return undefined;
+    }
+
     GameLogic.prototype.getPockets = function() {
         return this.gui.getPockets();
     }
@@ -322,7 +332,7 @@ define(function(require) {
      */
     GameLogic.prototype.endGame = function() {
         var player = this.getCurrentPlayer();
-        var playersBalls  = this.getMyBalls(player);
+        var playersBalls  = this.getBalls(player.ballSet);
         if (playersBalls.length == 0) {
             console.log("Player: " + this.currentPlayer + " wins!");
         }
