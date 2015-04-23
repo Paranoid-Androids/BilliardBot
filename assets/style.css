@@ -1,6 +1,14 @@
 body {
-  background: #222;
-  text-align: center;
+    background: url('marvin.png'), -webkit-linear-gradient(90deg, #232526 10%, #414345 90%); /* Chrome 10+, Saf5.1+ */
+    background: url('marvin.png'),    -moz-linear-gradient(90deg, #232526 10%, #414345 90%); /* FF3.6+ */
+    background: url('marvin.png'),     -ms-linear-gradient(90deg, #232526 10%, #414345 90%); /* IE10 */
+    background: url('marvin.png'),      -o-linear-gradient(90deg, #232526 10%, #414345 90%); /* Opera 11.10+ */
+    background: url('marvin.png'),         linear-gradient(90deg, #232526 10%, #414345 90%); /* W3C */
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: top right;
+    background-size: 10%, 100%;
+    text-align: center;
 }
 
 canvas {
@@ -16,4 +24,12 @@ canvas:active {
 
 h1, h2 {
 	color:white;
+}
+
+#game-score {
+    color: red;
+}
+
+#balls-sunk {
+    color: blue;
 }

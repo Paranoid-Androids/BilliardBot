@@ -22,6 +22,8 @@ define(function(require) {
         DOUBLE_AI: 'Two-player AI Game'
     };
 
+    common.activeGame = null;
+
     /**
      * Starts a new pool game in the given container.
      * @param container {!Element} The container that contains the pool table.
@@ -29,6 +31,10 @@ define(function(require) {
      * @param debugParams {?object} Additional parameters to specify.
      */
     common.startGame = function(canvas, gameType, debugParams) {
+        if (common.activeGame) {
+            common.activeGame.endGame();
+        }
+
         console.log('Starting a new pool game: ' + gameType);
         canvas.innerHTML = "";
         var GUI = require('gui');
@@ -38,6 +44,7 @@ define(function(require) {
         var gui = new GUI(canvas);
         var gameLogic = new GameLogic(gui, gameType);
         gui.setListener(gameLogic);
+        common.activeGame = gui;
 
         switch (gameType) {
             case common.GameType.SINGLE_AI:
