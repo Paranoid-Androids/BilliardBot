@@ -201,11 +201,10 @@ define(function(require) {
             }
         });
 
+        this.gameStatus = document.getElementById("game-status");
+        this.gameScore = document.getElementById("game-score");
         // TODO: Temporary fix: show balls sunk as text.
         this.ballsSunk = document.getElementById("balls-sunk");
-        this.gameStatus = document.getElementById("game-status");
-        this.stripesSunk = document.getElementById("stripes-sunk");
-        this.solidsSunk = document.getElementById("solids-sunk");
 
         // Add some some walls to the world.
         // Note that these values were carefully calculated by first hiding all the pockets and
@@ -361,6 +360,21 @@ define(function(require) {
         this.updateGameStatus('Player ' + (player + 1) + '\'s turn');
     }
 
+    GUI.prototype.addSunkenBall = function(sunkenBall) {
+        if (this.ballsSunk.innerHTML != "") {
+            this.ballsSunk.innerHTML += ", ";
+        }
+        this.ballsSunk.innerHTML += sunkenBall;
+    }
+
+    GUI.prototype.updateScores = function(score1, score2) {
+        if (score2 === undefined) {
+            this.gameScore.innerHTML = score1;
+        } else {
+            this.gameScore.innerHTML = "P1 - " + score1 + " | P2 - " + score2;
+        }
+    }
+
     /**
      * Updates the page with the status of the game.
      * @param {string} gameStatus The game status.
@@ -466,7 +480,7 @@ define(function(require) {
         Runner.stop(this.engine);
         this.updateGameStatus(isMultiplayer
             ? ("Player " + (winningPlayer + 1) + " won!")
-            : (winningPlayer == 0 ? "You won!" : "You lost."));
+            : (winningPlayer == 0 ? "Winner!" : "LOSER."));
     }
 
     return GUI;

@@ -10,7 +10,6 @@ define(function(require) {
     var Matter = require('third_party/matter');
     var Common = Matter.Common;
 
-
     /**
      * Constructs a new GameLogic.
      * @class
@@ -18,8 +17,9 @@ define(function(require) {
      * @exports GameLogic
      * @param gui {GUI} The GUI that this class should use.
      */
-    function GameLogic(gui) {
+    function GameLogic(gui, gameType) {
         this.gui = gui;
+        this.gameType = gameType;
         this.ballsSunk = [];
         this.players = [];
         this.currentPlayer = 0;
@@ -67,9 +67,14 @@ define(function(require) {
             this.initialBreak = false;
         }
         else {
-            return new Error("Invalid amount of players!");
+            throw new Error("Invalid number of players!");
         }
-        this.gui.ballsSunk.innerHTML = "Balls Sunk: ";
+        this.gui.ballsSunk.innerHTML = "";
+        if (this.getNumberOfPlayers() == 1) {
+            this.gui.updateScores(0);
+        } else {
+            this.gui.updateScores(0, 0);
+        }
     };
 
     /**
@@ -200,17 +205,16 @@ define(function(require) {
                 }
             });
 
-            self.ballsSunk.push(ball);
-            self.gui.ballsSunk.innerHTML += self.getBallNumber(ball) + ", ";
+            self.gui.addSunkenBall(self.getBallNumber(ball));
 
-            self.players.forEach(function(p){
-                if(p.ballSet == self.STRIPED_SET) {
-                    self.gui.stripesSunk.innerHTML = "Stripes Sunk: " + p.score;
-                }
-                else if(p.ballSet == self.SOLID_SET) {
-                    self.gui.solidsSunk.innerHTML = "Solids Sunk: " + p.score;
-                }
-            });
+            // FIXME: support more than 2 players.
+            if (self.getNumberOfPlayers() == 1) {
+                self.gui.updateScores(self.players[0].score);
+            } else {
+                var p1 = self.players[0].ballSet == self.STRIPED_SET ? self.players[0] : self.players[1];
+                var p2 = p1 == self.players[0] ? self.players[1] : self.players[0];
+                self.gui.updateScores(p1.score, p2.score);
+            }
 
             if(self.getBalls(self.getCurrentPlayer().ballSet).length == 0) {
                 self.getCurrentPlayer().ballSet = this.LOCKED_SET;
@@ -264,8 +268,7 @@ define(function(require) {
     GameLogic.prototype.takeNextTurn = function() {
         if (!this.goAgain) {
            this.incrementPlayer();
-        }
-        else {
+        } else {
             this.goAgain = false;
         }
         this.notifyPlayer();
@@ -273,8 +276,6 @@ define(function(require) {
 
     GameLogic.prototype.incrementPlayer = function() {
         this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
-        var playerPlus1 = (this.currentPlayer + 1);
-        this.gui.playerTurn.innerHTML = "Player Turn: " + playerPlus1;
     }
 
     GameLogic.prototype.notifyPlayer = function() {
