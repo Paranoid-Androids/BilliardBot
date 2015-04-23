@@ -187,7 +187,7 @@ define(function(require) {
                     else {
                         console.log("sunk opponent ball!");
                         var player2 = player;
-                        this.players.forEach(function(p){
+                        self.players.forEach(function(p){
                             if(p.ballSet == setIndex) {
                                 player2 = p;
                             }
@@ -205,7 +205,6 @@ define(function(require) {
                 self.getCurrentPlayer().ballSet = this.LOCKED_SET;
             }
         }
-        console.log(this.players);
     }
 
     /**

@@ -202,6 +202,7 @@ define(function(require) {
                 var currentScore = 0;
                 var successors = self.generateSuccessors(node, agent, action);
                 successors.forEach(function(successor) {
+                    var next = self.expectimax(successor.node, depth - 1, successor.agent);
                     currentScore += successor.probability * (self.expectimax(successor.node, depth - 1, successor.agent).score);
                 })
                 if (currentScore >= bestScore) {
@@ -297,16 +298,20 @@ define(function(require) {
      */ 
     AI.prototype.basicEvaluationFunction = function(node) {
         var score = 0;
-        // Assuming agent #0 is this agent.
-        var ballSets = node.balls;
-        for (var i = 0; i < node.balls.length; i++) {
-            if (i == 0) {
-                score -= node.balls[0];
-            } else {
-                score += node.balls[i];
-            }
+        if (this.ballSet == undefined) {
+            return 14;
         }
-        return 5;
+
+        var ballSet = this.getBallsBySet(node.balls, this.ballSet);
+        node.balls.forEach(function(ball) {
+            if (ballSet.indexOf(ball) != -1) {
+                score -= 1;
+            }
+            else {
+                score += 1;
+            }
+        });
+        return score;
     }
 
     AI.prototype.evaluationFunction = AI.prototype.basicEvaluationFunction;
