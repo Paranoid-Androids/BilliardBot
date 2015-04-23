@@ -47,12 +47,12 @@ for (var i = 0; i < tests.length; i++) {
                 return errors.length != 0 || this.exists(DONE_SELECTOR);
             },
             function gameEnded() {
-                test.assertEquals([]], []);
+                test.assertEquals(errors, []);
                 test.assertExists('#gameEnded');
             },
             function timedOut() {
                 timedOut = true;
-                test.assertEquals(errors, []);
+                test.assertEquals([], []); // intentional
                 test.assertExists('#gameEnded');
             }, TIMEOUT);
 

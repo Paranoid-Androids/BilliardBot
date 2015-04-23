@@ -21,5 +21,9 @@ define(function(require) {
         throw new Error('abstract method');
     };
 
+    GUIListener.prototype.createInitialBallList = function() {
+        throw new Error('abstract method');
+    };
+
     return GUIListener;
 });
