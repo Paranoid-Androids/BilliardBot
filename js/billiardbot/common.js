@@ -30,7 +30,7 @@ define(function(require) {
      */
     common.startGame = function(canvas, gameType, debugParams) {
         console.log('Starting a new pool game: ' + gameType);
-
+        canvas.innerHTML = "";
         var GUI = require('gui');
         var GameLogic = require('gamelogic');
         var AI = require('ai');

@@ -69,6 +69,7 @@ define(function(require) {
         else {
             return new Error("Invalid amount of players!");
         }
+        this.gui.ballsSunk.innerHTML = "Balls Sunk: ";
     };
 
     /**
