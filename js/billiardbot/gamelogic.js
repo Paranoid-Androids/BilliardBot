@@ -224,7 +224,7 @@ define(function(require) {
                 self.gui.updateScores(p1.score, p2.score);
             }
 
-            if(self.getBalls(self.getCurrentPlayer().ballSet).length == 0) {
+            if(self.getBalls(self.getCurrentPlayer().ballSet).length == 0 || self.getBalls(self.getCurrentPlayer().ballSet) == null) {
                 self.getCurrentPlayer().ballSet = this.LOCKED_SET;
             }
         }

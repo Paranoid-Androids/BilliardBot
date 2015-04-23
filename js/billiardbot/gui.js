@@ -219,16 +219,16 @@ define(function(require) {
             Bodies.rectangle(GUI.WIDTH + wallOffset, GUI.HEIGHT / 2, GUI.WALL_WIDTH,
                 GUI.HEIGHT - pocketOffset, GUI.WALL_OPTIONS),
             // Top wall (broken up into two).
-            Bodies.rectangle(GUI.WIDTH / 4 + pocketOffset / 12, -wallOffset, (
+            Bodies.rectangle(GUI.WIDTH / 4 + pocketOffset / 6, -wallOffset, (
                 GUI.WIDTH - pocketOffset * 7 / 5) / 2, GUI.WALL_WIDTH, GUI.WALL_OPTIONS),
-            Bodies.rectangle(GUI.WIDTH * 3 / 4 - pocketOffset / 12, -wallOffset, (
+            Bodies.rectangle(GUI.WIDTH * 3 / 4 - pocketOffset / 6, -wallOffset, (
                 GUI.WIDTH - pocketOffset * 7 / 5) / 2, GUI.WALL_WIDTH, GUI.WALL_OPTIONS),
             // Bottom wall (broken up into two).
-            Bodies.rectangle(GUI.WIDTH / 4 + pocketOffset / 12, GUI.HEIGHT +
+            Bodies.rectangle(GUI.WIDTH / 4 + pocketOffset / 6, GUI.HEIGHT +
                 wallOffset, (GUI.WIDTH - pocketOffset * 7 / 5) / 2, GUI.WALL_WIDTH,
                 GUI.WALL_OPTIONS
             ),
-            Bodies.rectangle(GUI.WIDTH * 3 / 4 - pocketOffset / 12, GUI.HEIGHT +
+            Bodies.rectangle(GUI.WIDTH * 3 / 4 - pocketOffset / 6, GUI.HEIGHT +
                 wallOffset, (GUI.WIDTH - pocketOffset * 7 / 5) / 2, GUI.WALL_WIDTH,
                 GUI.WALL_OPTIONS
             )

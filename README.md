@@ -5,3 +5,6 @@ Artificial Intelligence.
 
 Essentially, BilliardBot is a software simulation of a pool-playing robot,
 written in JavaScript using Matter.js.
+
+
+To run demo, open billiardbot.html
