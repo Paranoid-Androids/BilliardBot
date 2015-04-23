@@ -27,6 +27,7 @@ define(function(require) {
         this.initialBreak = true;
         this.scratched = 0;
         this.SPECIAL_BALL = 8;
+        this.LOCKED_SET = 2;
     }
 
     /**
@@ -103,26 +104,31 @@ define(function(require) {
 
     /** @override */
     GameLogic.prototype.onBallsStopped = function() {
-        if (this.scratched && this.specialSink) {
-            this.playerLose();
+        if (this.specialSink){
+            
+            if(this.scratched) {
+                this.playerLose();
+                return;
+            } else {
+                this.playerWin();
+                return;
+            }
             return;
-        }
-        else if (this.scratched){
+        } else if (this.scratched){
             this.onScratch();
         }
-        else if (this.specialSink){
-            this.playerWin();
-            return;
-        }
+
         this.scratched = 0;
         this.specialSink = 0;
         this.takeNextTurn();
+
     }
 
     GameLogic.prototype.onScratch = function() {
         //TODO we should ask the AI agent to place the cue ball in a smart location
         // for now, we'll just place it back in the same spot that we broke
         this.gui.placeCue();
+        self.goAgain = false;
         console.log("Player " + this.currentPlayer + " scratched!");
 
         // var self = this;
@@ -178,7 +184,7 @@ define(function(require) {
             self.gui.ballsSunk.innerHTML += self.getBallNumber(ball) + ", ";
 
             if(self.getMyBalls(self.getCurrentPlayer()).length == 0) {
-                self.getCurrentPlayer().ballSet = 3;
+                self.getCurrentPlayer().ballSet = this.LOCKED_SET;
             }
         }
     }
@@ -251,8 +257,6 @@ define(function(require) {
     GameLogic.prototype.assignBalls = function(player, setIndex) {
         player.ballSet = setIndex;
         var otherIndex = (setIndex + 1) % GameLogic.BALL_SETS.length;
-        console.log(setIndex);
-        console.log(otherIndex);
         for (var i = 0; i < this.players.length; i++) {
             if (this.currentPlayer != i) {
                 this.players[i].ballSet = otherIndex;
