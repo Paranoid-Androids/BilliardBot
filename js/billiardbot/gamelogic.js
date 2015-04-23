@@ -182,9 +182,17 @@ define(function(require) {
                     if (player.ballSet == setIndex){
                         console.log("sunk my ball!");
                         self.goAgain = true;
+                        player.score += 1;
                     }
                     else {
                         console.log("sunk opponent ball!");
+                        var player2 = player;
+                        this.players.forEach(function(p){
+                            if(p.ballSet == setIndex) {
+                                player2 = p;
+                            }
+                        });
+                        player2.score += 1;
                     }
                     set.splice(set.indexOf(ballNum), 1);
                 }
@@ -197,6 +205,7 @@ define(function(require) {
                 self.getCurrentPlayer().ballSet = this.LOCKED_SET;
             }
         }
+        console.log(this.players);
     }
 
     /**
@@ -217,6 +226,7 @@ define(function(require) {
      * registers an AI agent with the system
      */
     GameLogic.prototype.registerPlayer = function(player) {
+        player.score = 0;
         this.players.push(player);
     }
 
