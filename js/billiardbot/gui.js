@@ -290,23 +290,23 @@ define(function(require) {
     }
 
     GUI.prototype.setBallsHalted = function(halt) {
-        this.ballsHalted = halt;
-        this.getBallsOnTable().forEach(function(ball) {
-            if (halt) {
-                ball.oldFrictionAir = ball.frictionAir;
-                ball.frictionAir = 1;
-                ball.positionPrev.x = ball.position.x;
-                ball.positionPrev.y = ball.position.y;
-                ball.anglePrev = ball.angle;
-                ball.angularVelocity = 0;
-                ball.speed = 0;
-                ball.angularSpeed = 0;
-                ball.motion = 0;
-            } else {
-                ball.frictionAir = ball.oldFrictionAir;
-                delete ball.oldFrictionAir;
-            }
-        });
+        // this.ballsHalted = halt;
+        // this.getBallsOnTable().forEach(function(ball) {
+        //     if (halt) {
+        //         ball.oldFrictionAir = ball.frictionAir;
+        //         ball.frictionAir = 1;
+        //         ball.positionPrev.x = ball.position.x;
+        //         ball.positionPrev.y = ball.position.y;
+        //         ball.anglePrev = ball.angle;
+        //         ball.angularVelocity = 0;
+        //         ball.speed = 0;
+        //         ball.angularSpeed = 0;
+        //         ball.motion = 0;
+        //     } else {
+        //         ball.frictionAir = ball.oldFrictionAir;
+        //         delete ball.oldFrictionAir;
+        //     }
+        // });
     }
 
     /**
