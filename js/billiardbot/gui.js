@@ -385,6 +385,8 @@ define(function(require) {
 
                 var ball = this.createBall({x:ball_x, y:currentY});
                 ball.render.fillStyle = GameLogic.BALL_COLORS[ballList[currentBall] - 1];
+                ball.render.strokeStyle = GameLogic.BALL_OUTLINES[ballList[currentBall] - 1];
+                ball.render.lineWidth = 1.8;
                 ball.label = GameLogic.BALL_LABEL_PREFIX + ballList[currentBall];
 
                 World.add(this.engine.world, ball);

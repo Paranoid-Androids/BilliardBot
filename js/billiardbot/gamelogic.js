@@ -34,9 +34,19 @@ define(function(require) {
      * The list of colors for each ball.
      * @const {Array.<string>}
      */
+    // GameLogic.BALL_COLORS = ["yellow", "blue", "red", "purple", "orange", "green", "maroon",
+    //     "black",
+    //     "LemonChiffon", "SkyBlue", "Tomato", "MediumPurple", "LightSalmon", "LightGreen", "IndianRed"
+    // ];        
+
     GameLogic.BALL_COLORS = ["yellow", "blue", "red", "purple", "orange", "green", "maroon",
         "black",
-        "LemonChiffon", "SkyBlue", "Tomato", "MediumPurple", "LightSalmon", "LightGreen", "IndianRed"
+        "white", "white", "white", "white", "white", "white", "white"
+    ];    
+
+    GameLogic.BALL_OUTLINES = ["black", "black", "black", "black", "black", "black", "black",
+        "black",
+        "yellow", "blue", "red", "purple", "orange", "green", "maroon"
     ];
 
     /**
@@ -105,7 +115,7 @@ define(function(require) {
     /** @override */
     GameLogic.prototype.onBallsStopped = function() {
         if (this.specialSink){
-            
+
             if(this.scratched) {
                 this.playerLose();
                 return;
@@ -256,7 +266,7 @@ define(function(require) {
 
     GameLogic.prototype.assignBalls = function(player, setIndex) {
         player.ballSet = setIndex;
-        var otherIndex = (setIndex + 1) % GameLogic.BALL_SETS.length;
+        var otherIndex = (setIndex + 1) % (GameLogic.BALL_SETS.length - 1);
         for (var i = 0; i < this.players.length; i++) {
             if (this.currentPlayer != i) {
                 this.players[i].ballSet = otherIndex;

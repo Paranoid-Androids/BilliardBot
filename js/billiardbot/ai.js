@@ -89,6 +89,8 @@ define(function(require) {
             });
         });
 
+        console.log("shooting at: " + shootingAtBall.label + " " + shootingAtBall.render.fillStyle + "-" + shootingAtBall.render.strokeStyle);
+        this.gameLogic.takeShot(force);
         return actions;
     }
 
