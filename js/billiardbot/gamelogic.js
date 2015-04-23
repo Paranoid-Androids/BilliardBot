@@ -123,15 +123,14 @@ define(function(require) {
                 this.playerWin();
                 return;
             }
-            return;
         } else if (this.scratched){
             this.onScratch();
         }
 
         this.scratched = 0;
         this.specialSink = 0;
-        this.takeNextTurn();
 
+        this.takeNextTurn();
     }
 
     GameLogic.prototype.onScratch = function() {
@@ -167,7 +166,7 @@ define(function(require) {
             this.scratched = 1;
         }
         else if (ballNum == this.SPECIAL_BALL) {
-            console.log("sunk "+this.SPECIAL_BALL+" ball!");
+            console.log("sunk " + ballNum + " ball!");
             this.specialSink = 1;
         }
         else {
