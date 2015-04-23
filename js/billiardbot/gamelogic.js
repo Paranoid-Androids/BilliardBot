@@ -132,7 +132,7 @@ define(function(require) {
             this.BALL_SETS[this.getCurrentPlayer().ballSet].forEach(function(tryNum){
                 if (ballNum == tryNum) {
                     gui.placeBall(ball, {x: 3 * GUI.WIDTH / 4, y: GUI.HEIGHT / 2});
-                    ballsSunk.remove(ball);
+                    this.ballsSunk.splice(this.ballsSunk.indexOf(ball), 1);
                     console.log("Returning " + ballNum + " to player " + returnPlayersBall);
                     this.gui.ballsSunk.innerHTML += this.getBallNumber(ball) + " replaced, ";
                     return;
@@ -176,7 +176,7 @@ define(function(require) {
             });
             this.ballsSunk.push(ball);
             this.gui.ballsSunk.innerHTML += this.getBallNumber(ball) + " sunk, ";
-            if(this.getMyBalls(player).length == 0) {
+            if(this.getMyBalls(self.getCurrentPlayer()).length == 0) {
                 this.getCurrentPlayer().ballSet = 3;
             }
         }
