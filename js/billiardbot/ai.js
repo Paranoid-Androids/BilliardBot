@@ -21,66 +21,75 @@ define(function(require) {
     }
 
     AI.prototype.makeMove = function() {
-        var self = this;
-        var pockets = this.gameLogic.getPockets();
-        var balls = this.gameLogic.getMyBalls(this);
-        var cue = this.gameLogic.getCue();
-
         if (this.gameLogic.initialBreak) {
             this.gameLogic.takeShot(AI.BREAK_VECTOR);
         }
         else {
+            
+            var startNode = {balls: this.gameLogic.getMyBalls(this), cue: this.gameLogic.getCue()};
+            var bestShot = this.expectimax(startNode, 1, 0);
+            var force = bestShot.action.force;
+            this.gameLogic.takeShot(force);
+        }
+    }
+
+    AI.prototype.legalActions = function(balls, cue) {
+        var self = this;
+        var pockets = this.gameLogic.getPockets();
+        var actions = [];
+
+        balls.forEach(function(ball) {
             var bestTheta = Math.PI / 2;
-            var force;
+            var bestShot;
             var totalObstacles = balls.length; //set to be the number of balls as an upper bound
-            var shootingAtBall;
+            pockets.forEach(function(pocket) {
+                var currentShot = self.getCueForceToBall(cue, ball, pocket);
+                var thetaToBall = self.getThetaToBall(cue, ball);
+                var numberOfObstacles = self.getObstacleCount(cue, currentShot.cueContact, ball, pocket);
 
-            balls.forEach(function(ball) {
-                pockets.forEach(function(pocket) {
-                    var bestShot = self.getCueForceToBall(cue, ball, pocket);
-                    var thetaToBall = self.getThetaToBall(cue, ball);
-                    var numberOfObstacles = self.getObstacleCount(cue, bestShot.cueContact, ball, pocket);
+                var deltaTheta = Math.abs(currentShot.theta - thetaToBall);
 
-                    var deltaTheta = Math.abs(bestShot.theta - thetaToBall);
+                if (deltaTheta < (Math.PI / 2)) {
 
-                    if (deltaTheta < (Math.PI / 2)) {
-
-                        // number of obstacles is > 0 but <= totalObstacles
-                        // take the better theta value
-                        if (numberOfObstacles > 0 && numberOfObstacles <= totalObstacles) {
-                            if (deltaTheta < bestTheta) {
-                                    bestTheta = deltaTheta;
-                                    force = bestShot.force;
-                                    totalObstacles = numberOfObstacles;
-                                    shootingAtBall = ball;
-                                }
-                        }
-                        else if (numberOfObstacles == 0){
-                            // there are no obstacles, and the current best shot has obstacles
-                            // automatically take this new shot
-                            if (totalObstacles != 0) {
-                                totalObstacles = 0;
+                    // number of obstacles is > 0 but <= totalObstacles
+                    // take the better theta value
+                    if (numberOfObstacles > 0 && numberOfObstacles <= totalObstacles) {
+                        if (deltaTheta < bestTheta) {
                                 bestTheta = deltaTheta;
-                                force = bestShot.force;
-                                shootingAtBall = ball;
+                                bestShot = currentShot;
+                                totalObstacles = numberOfObstacles;
                             }
-                            // no obstacles, but the current shot also has no obstacles
-                            // only take a better theta value
-                            else {
-                                if (deltaTheta < bestTheta) {
-                                    bestTheta = deltaTheta;
-                                    force = bestShot.force;
-                                    shootingAtBall = ball;
-                                }
+                    }
+                    else if (numberOfObstacles == 0){
+                        // there are no obstacles, and the current best shot has obstacles
+                        // automatically take this new shot
+                        if (totalObstacles != 0) {
+                            totalObstacles = 0;
+                            bestTheta = deltaTheta;
+                            bestShot = currentShot;
+                        }
+                        // no obstacles, but the current shot also has no obstacles
+                        // only take a better theta value
+                        else {
+                            if (deltaTheta < bestTheta) {
+                                bestTheta = deltaTheta;
+                                bestShot = currentShot;
                             }
                         }
                     }
-                });
+                }
             });
+            actions.push({
+                ball: ball,
+                force: bestShot.force,
+                deltaTheta: bestTheta,
+                theta: bestShot.theta,
+                newCue: bestShot.cueFinal,
+                obstacles: totalObstacles
+            });
+        });
 
-            console.log("shooting at: " + shootingAtBall.label + " " + shootingAtBall.render.fillStyle);
-            this.gameLogic.takeShot(force);
-        }
+        return actions;
     }
 
     AI.prototype.minVtoPocket = function(ball, pocket) {
@@ -152,47 +161,107 @@ define(function(require) {
         return 2;
     }
 
-    // node = {balls, cue, target, shot, children, score}
+    // node = {balls, cue}
     AI.prototype.expectimax = function(node, depth, agent) {
         var self = this;
 
-        if (depth == 0 || node.isWin() || node.isLose()) {
-            return evaluationFunction(score);
+        if (depth == 0) {//} || node.isWin() || node.isLose()) {
+            return {score: this.evaluationFunction(node)};
         } else if (agent == 0) {
-            return node.legalActions[agent].reduce(function(m, k) {
-                // TODO: memoize for performance.
-                successor = self.generateSuccessor(agent, k);
-                score = self.expectimax(successor, depth, (agent + 1) % self.totalAgents());
-                if (m == null || score > m.score) {
-                    return {score: score, successor: successor}
-                } else {
-                    return m;
+            // get list of best shots for each of this agents balls (legalActions)
+            // for each shot...
+            // generate a successor board for success (made the ball, move the cue to the new position)
+            // and generate a successor board for failure(do something with the ball, move the cue to the new position)
+            // accumulator += probability(successor) * expectimax(successor)
+            var bestScore = -Infinity;
+            var bestAction;
+            this.legalActions(node.balls, node.cue).forEach(function(action) {
+                var currentScore = 0;
+                var successors = self.generateSuccessors(node.balls, node.cue, agent, action);
+                successors.forEach(function(successor) {
+                    currentScore += successor.probability * (self.expectimax(successor.node, depth - 1, successor.agent).score);
+                })
+                if (currentScore >= bestScore) {
+                    bestScore = currentScore;
+                    bestAction = action;
                 }
-
             });
-//            spawnChildren(node, depth);
+
+            return {score: bestScore, action: bestAction};
+
+
+
+//             return this.legalActions[agent].reduce(function(m, k) {
+//                 // TODO: memoize for performance.
+//                 successor = self.generateSuccessor(agent, k);
+//                 score = self.expectimax(successor, depth, (agent + 1) % self.totalAgents());
+//                 if (m == null || score > m.score) {
+//                     return {score: score, successor: successor}
+//                 } else {
+//                     return m;
+//                 }
+
+//             });
+// //            spawnChildren(node, depth);
         } else {
-            actions = node.getLegalActions[agent];
+            // actions = node.getLegalActions[agent];
 
-            return actions.reduce(function(m, k) {
-                // TODO: memoize for performance.
-                successor = self.generateSuccessor(agent, k);
-                if (agent == self.totalAgents() - 1) {
-                    score = self.expectimax(successor, depth - 1, (agent + 1) % self.totalAgents());
-                } else {
-                    score = self.expectimax(successor, depth, (agent + 1) % self.totalAgents());
-                }
+            // return actions.reduce(function(m, k) {
+            //     // TODO: memoize for performance.
+            //     successor = self.generateSuccessor(agent, k);
+            //     if (agent == self.totalAgents() - 1) {
+            //         score = self.expectimax(successor, depth - 1, (agent + 1) % self.totalAgents());
+            //     } else {
+            //         score = self.expectimax(successor, depth, (agent + 1) % self.totalAgents());
+            //     }
 
-                if (m == null || score > m.score) {
-                    return {score: score, successor: successor}
-                } else {
-                    return m;
-                }
-            });
+            //     if (m == null || score > m.score) {
+            //         return {score: score, successor: successor}
+            //     } else {
+            //         return m;
+            //     }
+            // });
         }
     }
 
-    AI.prototype.evaluationFunction = AI.prototype.basicEvaluationFunction;
+    AI.prototype.generateSuccessors = function(balls, cue, agent, action) {
+        var self = this;
+        var successors = [];
+        var probability = 1;
+
+        // success successor and a failure successor
+        if (action.obstacles == 0) {
+            var successProbability = 1 - (action.deltaTheta / (Math.PI / 2));
+            probability -= successProbability;
+            var newBalls = balls.slice();
+            var ballIndex = newBalls.indexOf(action.ball);
+            if (ballIndex != -1) {
+                newBalls.splice(ballIndex, 1);
+            }
+            successors.push({
+                probability: successProbability,
+                agent: agent,
+                node: {
+                    balls: newBalls,
+                    cue: action.newCue
+                }
+            });
+        }
+
+        // failure successor
+        var newBalls = balls.slice();
+        successors.push({
+            probability: probability,
+            agent: (agent + 1) % self.totalAgents(),
+            node: {
+                balls: newBalls,
+                cue: action.newCue
+            }
+        });
+
+        return successors;
+
+    }
 
     /**
      * This basic function prefers less of the player's balls and more of
@@ -209,8 +278,10 @@ define(function(require) {
                 score += node.balls[i];
             }
         }
-        return score;
+        return 5;
     }
+
+    AI.prototype.evaluationFunction = AI.prototype.basicEvaluationFunction;
 
     return AI;
 });
