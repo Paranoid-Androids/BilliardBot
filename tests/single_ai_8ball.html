@@ -11,21 +11,24 @@
     </style>
 </head>
 <body>
-    <canvas id="matter-canvas"></canvas>
     <h1>Current Player: <span id="current-player"></span></h1>
+    <canvas id="matter-canvas"></canvas>
     <h1 id="balls-sunk">Balls Sunk: </h1>
 
     <script>
-        requirejs(['common', 'gui', 'ai', 'utils', '../../tests/testutils'],
-            function(common, gui, ai, utils, testUtils) {
+        requirejs(['common', 'gamelogic', 'gui', 'ai', 'utils', '../../tests/testutils',
+            'third_party/matter'],
+            function(Common, GameLogic, GUI, AI, Utils, TestUtils, Matter) {
                 "use strict";
 
                 // Overwrite prototypes as necessary here.
-                gui.prototype.setupRack = function() {
-                    // Intentionally left blank.
+                GUI.prototype.setupRack = function() {
+                    // Add the eight-ball.
+                    TestUtils.addBallToWorld(this, 'black', 8, 3 * GUI.WIDTH / 4,
+                        GUI.HEIGHT / 2);
                 };
 
-                testUtils.startTestGame(common.GameType.SINGLE_AI);
+                TestUtils.startTestGame(Common.GameType.SINGLE_AI);
             });
     </script>
 </body>
