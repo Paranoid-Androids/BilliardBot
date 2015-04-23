@@ -25,6 +25,8 @@ define(function(require) {
         this.currentPlayer = 0;
         this.goAgain = false;
         this.initialBreak = true;
+        this.scratched = 0;
+        this.SPECIAL_BALL = 8;
     }
 
     /**
@@ -39,7 +41,7 @@ define(function(require) {
     /**
      * holds the different sets of balls [solid, stripe]
      */
-    GameLogic.BALL_SETS = [[1, 2, 3, 4, 5, 6, 7], [9, 10, 11, 12, 13, 14, 15]]
+    GameLogic.BALL_SETS = [[1, 2, 3, 4, 5, 6, 7], [9, 10, 11, 12, 13, 14, 15], [8]];
 
     GameLogic.BALL_LABEL_PREFIX = "ball-";
 
@@ -101,7 +103,44 @@ define(function(require) {
 
     /** @override */
     GameLogic.prototype.onBallsStopped = function() {
+        if(this.scratched && this.specialSink){
+            this.playerLose();
+        }
+        else if(this.scratched){
+            this.onScratch();
+        }
+        else if(this.specialSink){
+            this.playerWin();
+        }
+        this.scratched = 0;
+        this.specialSink = 0;
         this.takeNextTurn();
+    }
+
+    GameLogic.prototype.onScratch = function() {
+        //TODO we should ask the AI agent to place the cue ball in a smart location
+        // for now, we'll just place it back in the same spot that we broke
+        this.gui.placeCue();
+
+        // return a ball belonging to the scratcher
+        var returnPlayersBall = this.currentPlayer;
+
+        console.log("Player " + returnPlayersBall + " scratched!");
+
+        this.ballsSunk.forEach(function(ball){
+            var ballNum = this.getBallNumber(ball);
+            this.BALL_SETS[this.getCurrentPlayer().ballSet].forEach(function(tryNum){
+                if (ballNum == tryNum) {
+                    gui.placeBall(ball, {x: 3 * GUI.WIDTH / 4, y: GUI.HEIGHT / 2});
+                    ballsSunk.remove(ball);
+                    console.log("Returning " + ballNum + " to player " + returnPlayersBall);
+                    this.gui.ballsSunk.innerHTML += this.getBallNumber(ball) + " replaced, ";
+                    return;
+                }
+            });
+        });
+        console.log("No balls to return to player " + returnPlayersBall);
+        return;
     }
 
     GameLogic.prototype.ballSunk = function(ball) {
@@ -110,14 +149,11 @@ define(function(require) {
         console.log("ball " + ballNum + " sunk!");
 
         if (ballNum == 0) {
-            console.log("sunk cue ball!");
-            //TODO we should ask the AI agent to place the cue ball in a smart location
-            // for now, we'll just place it back in the same spot that we broke
-            this.gui.placeCue();
+            this.scratched = 1;
         }
-        else if (ballNum == 8) {
-            console.log("sunk 8 ball!");
-            this.endGame();
+        else if (ballNum == SPECIAL_BALL) {
+            console.log("sunk "+this.SPECIAL_BALL+" ball!");
+            this.specialSink = 1;
         }
         else {
             GameLogic.BALL_SETS.forEach(function(set){
@@ -139,7 +175,10 @@ define(function(require) {
                 }
             });
             this.ballsSunk.push(ball);
-            this.gui.ballsSunk.innerHTML += this.getBallNumber(ball) + ", ";
+            this.gui.ballsSunk.innerHTML += this.getBallNumber(ball) + " sunk, ";
+            if(this.getMyBalls(player).length == 0) {
+                this.getCurrentPlayer().ballSet = 3;
+            }
         }
     }
 
@@ -261,6 +300,18 @@ define(function(require) {
         else {
             console.log("Player: " + this.currentPlayer + " lost!");
         }
+        this.gui.endGame();
+    }
+
+    GameLogic.prototype.playerLose = function() {
+        var player = this.getCurrentPlayer();
+        console.log("Player: " + this.currentPlayer + " lost!");
+        this.gui.endGame();
+    }
+
+    GameLogic.prototype.playerWin = function() {
+        var player = this.getCurrentPlayer();
+        console.log("Player: " + this.currentPlayer + " Won!");
         this.gui.endGame();
     }
 
