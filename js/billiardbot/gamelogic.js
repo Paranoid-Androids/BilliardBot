@@ -121,20 +121,20 @@ define(function(require) {
         //TODO we should ask the AI agent to place the cue ball in a smart location
         // for now, we'll just place it back in the same spot that we broke
         this.gui.placeCue();
-
+        var self = this;
         // return a ball belonging to the scratcher
         var returnPlayersBall = this.currentPlayer;
 
         console.log("Player " + returnPlayersBall + " scratched!");
 
-        this.ballsSunk.forEach(function(ball){
-            var ballNum = this.getBallNumber(ball);
-            this.BALL_SETS[this.getCurrentPlayer().ballSet].forEach(function(tryNum){
+        self.ballsSunk.forEach(function(ball){
+            var ballNum = self.getBallNumber(ball);
+            self.BALL_SETS[self.getCurrentPlayer().ballSet].forEach(function(tryNum){
                 if (ballNum == tryNum) {
                     gui.placeBall(ball, {x: 3 * GUI.WIDTH / 4, y: GUI.HEIGHT / 2});
-                    this.ballsSunk.splice(this.ballsSunk.indexOf(ball), 1);
+                    self.ballsSunk.splice(self.ballsSunk.indexOf(ball), 1);
                     console.log("Returning " + ballNum + " to player " + returnPlayersBall);
-                    this.gui.ballsSunk.innerHTML += this.getBallNumber(ball) + " replaced, ";
+                    self.gui.ballsSunk.innerHTML += self.getBallNumber(ball) + " replaced, ";
                     return;
                 }
             });
@@ -174,10 +174,12 @@ define(function(require) {
                     set.splice(set.indexOf(ballNum), 1);
                 }
             });
-            this.ballsSunk.push(ball);
-            this.gui.ballsSunk.innerHTML += this.getBallNumber(ball) + " sunk, ";
-            if(this.getMyBalls(self.getCurrentPlayer()).length == 0) {
-                this.getCurrentPlayer().ballSet = 3;
+
+            self.ballsSunk.push(ball);
+            self.gui.ballsSunk.innerHTML += self.getBallNumber(ball) + " sunk, ";
+            
+            if(self.getMyBalls(self.getCurrentPlayer()).length == 0) {
+                self.getCurrentPlayer().ballSet = 3;
             }
         }
     }
