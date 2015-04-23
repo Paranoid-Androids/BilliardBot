@@ -23,7 +23,11 @@ define(function(require) {
 
     AI.prototype.makeMove = function() {
         if (this.gameLogic.initialBreak) {
-            this.gameLogic.takeShot(AI.BREAK_VECTOR);
+            var breakVector = {x: (3*GUI.WIDTH/4) - (this.gameLogic.getCue().position.x), 
+                                y: (GUI.HEIGHT/2) - (this.gameLogic.getCue().position.y)};
+            breakVector = Vector.mult(Vector.normalise(breakVector), 0.02);
+
+            this.gameLogic.takeShot(breakVector);
         }
         else {
             var startNode = {balls: this.gameLogic.getBallsOnTable(), cue: this.gameLogic.getCue(), ballSet: this.ballSet};

@@ -349,7 +349,7 @@ define(function(require) {
     }
 
     GUI.prototype.placeCue = function() {
-        this.placeCueWithP({x: GUI.WIDTH / 4, y: GUI.HEIGHT / 2});
+        this.placeCueWithP({x: GUI.WIDTH / 4, y: Math.floor(Math.random()*(GUI.HEIGHT-50))+50});
     }
 
     /**
