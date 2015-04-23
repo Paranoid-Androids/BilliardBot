@@ -27,6 +27,8 @@ define(function(require) {
         this.initialBreak = true;
         this.scratched = 0;
         this.SPECIAL_BALL = 8;
+        this.SOLID_SET = 0;
+        this.STRIPED_SET = 1;
         this.LOCKED_SET = 2;
     }
 
@@ -199,6 +201,15 @@ define(function(require) {
 
             self.ballsSunk.push(ball);
             self.gui.ballsSunk.innerHTML += self.getBallNumber(ball) + ", ";
+
+            self.players.forEach(function(p){
+                if(p.ballSet == self.STRIPED_SET) {
+                    self.gui.stripesSunk.innerHTML = "Stripes Sunk: " + p.score;
+                }
+                else if(p.ballSet == self.SOLID_SET) {
+                    self.gui.solidsSunk.innerHTML = "Solids Sunk: " + p.score;
+                }
+            });
 
             if(self.getBalls(self.getCurrentPlayer().ballSet).length == 0) {
                 self.getCurrentPlayer().ballSet = this.LOCKED_SET;

@@ -204,6 +204,8 @@ define(function(require) {
         // TODO: Temporary fix: show balls sunk as text.
         this.ballsSunk = document.getElementById("balls-sunk");
         this.gameStatus = document.getElementById("game-status");
+        this.stripesSunk = document.getElementById("stripes-sunk");
+        this.solidsSunk = document.getElementById("solids-sunk");
 
         // Add some some walls to the world.
         // Note that these values were carefully calculated by first hiding all the pockets and
