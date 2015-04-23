@@ -1,0 +1,38 @@
+<html>
+<head>
+    <title>BilliardBot</title>
+    <script src="../js/third_party/require.js"></script>
+    <script src="js/config.js"></script>
+    <link rel="stylesheet" type="text/css" href="../assets/style.css">
+    <style>
+        body {
+            background: #999;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="game-status">Loading...</h1>
+    <canvas id="matter-canvas"></canvas>
+    <h2>Score: <span id="game-score"></span></h2>
+    <h2>Balls sunk: <span id="balls-sunk"></span></h2>
+
+    <script>
+        requirejs(['common', 'gamelogic', 'gui', 'ai', 'utils', 'test/testutils',
+            'third_party/matter'],
+            function(Common, GameLogic, GUI, AI, Utils, TestUtils, Matter) {
+                "use strict";
+
+                // Overwrite prototypes as necessary here.
+                GUI.prototype.setupRack = function() {
+                    // Add the eight-ball.
+                    TestUtils.addBallToWorld(this, 'black', 8, 1.8 * GUI.WIDTH / 4, GUI.HEIGHT / 4);
+                    TestUtils.addBallToWorld(this, 'red', 8, 1.4 * GUI.WIDTH / 4, GUI.HEIGHT / 4);
+                    TestUtils.addBallToWorld(this, 'green', 8, 1.5 * GUI.WIDTH / 4, GUI.HEIGHT / 2);
+                };
+
+                TestUtils.startTestGame(Common.GameType.SINGLE_AI);
+                TestUtils.notifyOnEndGame(GUI);
+            });
+    </script>
+</body>
+</html>
