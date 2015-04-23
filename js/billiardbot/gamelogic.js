@@ -237,6 +237,7 @@ define(function(require) {
      */
     GameLogic.prototype.registerPlayer = function(player) {
         player.score = 0;
+        player.id = this.players.length;
         this.players.push(player);
     }
 
@@ -272,6 +273,8 @@ define(function(require) {
 
     GameLogic.prototype.incrementPlayer = function() {
         this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
+        var playerPlus1 = (this.currentPlayer + 1);
+        this.gui.playerTurn.innerHTML = "Player Turn: " + playerPlus1;
     }
 
     GameLogic.prototype.notifyPlayer = function() {

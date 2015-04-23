@@ -204,6 +204,7 @@ define(function(require) {
         // TODO: Temporary fix: show balls sunk as text.
         this.ballsSunk = document.getElementById("balls-sunk");
         this.gameStatus = document.getElementById("game-status");
+        this.playerTurn = document.getElementById("player-turn");
         this.stripesSunk = document.getElementById("stripes-sunk");
         this.solidsSunk = document.getElementById("solids-sunk");
 
