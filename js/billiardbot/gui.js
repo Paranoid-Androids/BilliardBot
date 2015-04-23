@@ -204,6 +204,9 @@ define(function(require) {
         // TODO: Temporary fix: show balls sunk as text.
         this.ballsSunk = document.getElementById("balls-sunk");
         this.gameStatus = document.getElementById("game-status");
+        this.playerTurn = document.getElementById("player-turn");
+        this.stripesSunk = document.getElementById("stripes-sunk");
+        this.solidsSunk = document.getElementById("solids-sunk");
 
         // Add some some walls to the world.
         // Note that these values were carefully calculated by first hiding all the pockets and
@@ -290,23 +293,23 @@ define(function(require) {
     }
 
     GUI.prototype.setBallsHalted = function(halt) {
-        this.ballsHalted = halt;
-        this.getBallsOnTable().forEach(function(ball) {
-            if (halt) {
-                ball.oldFrictionAir = ball.frictionAir;
-                ball.frictionAir = 1;
-                ball.positionPrev.x = ball.position.x;
-                ball.positionPrev.y = ball.position.y;
-                ball.anglePrev = ball.angle;
-                ball.angularVelocity = 0;
-                ball.speed = 0;
-                ball.angularSpeed = 0;
-                ball.motion = 0;
-            } else {
-                ball.frictionAir = ball.oldFrictionAir;
-                delete ball.oldFrictionAir;
-            }
-        });
+        // this.ballsHalted = halt;
+        // this.getBallsOnTable().forEach(function(ball) {
+        //     if (halt) {
+        //         ball.oldFrictionAir = ball.frictionAir;
+        //         ball.frictionAir = 1;
+        //         ball.positionPrev.x = ball.position.x;
+        //         ball.positionPrev.y = ball.position.y;
+        //         ball.anglePrev = ball.angle;
+        //         ball.angularVelocity = 0;
+        //         ball.speed = 0;
+        //         ball.angularSpeed = 0;
+        //         ball.motion = 0;
+        //     } else {
+        //         ball.frictionAir = ball.oldFrictionAir;
+        //         delete ball.oldFrictionAir;
+        //     }
+        // });
     }
 
     /**
@@ -418,7 +421,7 @@ define(function(require) {
                 var ball = this.createBall({x:ball_x, y:currentY});
                 ball.render.fillStyle = GameLogic.BALL_COLORS[ballList[currentBall] - 1];
                 ball.render.strokeStyle = GameLogic.BALL_OUTLINES[ballList[currentBall] - 1];
-                ball.render.lineWidth = 1.8;
+                ball.render.lineWidth = 1.75;
                 ball.label = GameLogic.BALL_LABEL_PREFIX + ballList[currentBall];
 
                 World.add(this.engine.world, ball);

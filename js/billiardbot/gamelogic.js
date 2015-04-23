@@ -27,6 +27,8 @@ define(function(require) {
         this.initialBreak = true;
         this.scratched = 0;
         this.SPECIAL_BALL = 8;
+        this.SOLID_SET = 0;
+        this.STRIPED_SET = 1;
         this.LOCKED_SET = 2;
     }
 
@@ -67,6 +69,7 @@ define(function(require) {
         else {
             return new Error("Invalid amount of players!");
         }
+        this.gui.ballsSunk.innerHTML = "Balls Sunk: ";
     };
 
     /**
@@ -123,15 +126,14 @@ define(function(require) {
                 this.playerWin();
                 return;
             }
-            return;
         } else if (this.scratched){
             this.onScratch();
         }
 
         this.scratched = 0;
         this.specialSink = 0;
-        this.takeNextTurn();
 
+        this.takeNextTurn();
     }
 
     GameLogic.prototype.onScratch = function() {
@@ -167,7 +169,7 @@ define(function(require) {
             this.scratched = 1;
         }
         else if (ballNum == this.SPECIAL_BALL) {
-            console.log("sunk "+this.SPECIAL_BALL+" ball!");
+            console.log("sunk " + ballNum + " ball!");
             this.specialSink = 1;
         }
         else {
@@ -187,7 +189,7 @@ define(function(require) {
                     else {
                         console.log("sunk opponent ball!");
                         var player2 = player;
-                        this.players.forEach(function(p){
+                        self.players.forEach(function(p){
                             if(p.ballSet == setIndex) {
                                 player2 = p;
                             }
@@ -201,11 +203,19 @@ define(function(require) {
             self.ballsSunk.push(ball);
             self.gui.ballsSunk.innerHTML += self.getBallNumber(ball) + ", ";
 
+            self.players.forEach(function(p){
+                if(p.ballSet == self.STRIPED_SET) {
+                    self.gui.stripesSunk.innerHTML = "Stripes Sunk: " + p.score;
+                }
+                else if(p.ballSet == self.SOLID_SET) {
+                    self.gui.solidsSunk.innerHTML = "Solids Sunk: " + p.score;
+                }
+            });
+
             if(self.getBalls(self.getCurrentPlayer().ballSet).length == 0) {
                 self.getCurrentPlayer().ballSet = this.LOCKED_SET;
             }
         }
-        console.log(this.players);
     }
 
     /**
@@ -227,6 +237,7 @@ define(function(require) {
      */
     GameLogic.prototype.registerPlayer = function(player) {
         player.score = 0;
+        player.id = this.players.length;
         this.players.push(player);
     }
 
@@ -262,6 +273,8 @@ define(function(require) {
 
     GameLogic.prototype.incrementPlayer = function() {
         this.currentPlayer = (this.currentPlayer + 1) % this.players.length;
+        var playerPlus1 = (this.currentPlayer + 1);
+        this.gui.playerTurn.innerHTML = "Player Turn: " + playerPlus1;
     }
 
     GameLogic.prototype.notifyPlayer = function() {
