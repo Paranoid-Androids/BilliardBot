@@ -123,25 +123,22 @@ define(function(require) {
         //TODO we should ask the AI agent to place the cue ball in a smart location
         // for now, we'll just place it back in the same spot that we broke
         this.gui.placeCue();
-        var self = this;
-        // return a ball belonging to the scratcher
-        var returnPlayersBall = this.currentPlayer;
+        console.log("Player " + this.currentPlayer + " scratched!");
 
-        console.log("Player " + returnPlayersBall + " scratched!");
-
-        self.ballsSunk.forEach(function(ball){
-            var ballNum = self.getBallNumber(ball);
-            self.BALL_SETS[self.getCurrentPlayer().ballSet].forEach(function(tryNum){
-                if (ballNum == tryNum) {
-                    gui.placeBall(ball, {x: 3 * GUI.WIDTH / 4, y: GUI.HEIGHT / 2});
-                    self.ballsSunk.splice(self.ballsSunk.indexOf(ball), 1);
-                    console.log("Returning " + ballNum + " to player " + returnPlayersBall);
-                    self.gui.ballsSunk.innerHTML += self.getBallNumber(ball) + " replaced, ";
-                    return;
-                }
-            });
-        });
-        console.log("No balls to return to player " + returnPlayersBall);
+        // var self = this;
+        // self.ballsSunk.forEach(function(ball){
+        //     var ballNum = self.getBallNumber(ball);
+        //     self.BALL_SETS[self.getCurrentPlayer().ballSet].forEach(function(tryNum){
+        //         if (ballNum == tryNum) {
+        //             gui.placeBall(ball, {x: 3 * GUI.WIDTH / 4, y: GUI.HEIGHT / 2});
+        //             self.ballsSunk.splice(self.ballsSunk.indexOf(ball), 1);
+        //             console.log("Returning " + ballNum + " to player " + self.currentPlayer);
+        //             self.gui.ballsSunk.innerHTML += self.getBallNumber(ball) + " replaced, ";
+        //             return;
+        //         }
+        //     });
+        // });
+        // console.log("No balls to return to player " + self.currentPlayer);
         return;
     }
 
@@ -178,8 +175,8 @@ define(function(require) {
             });
 
             self.ballsSunk.push(ball);
-            self.gui.ballsSunk.innerHTML += self.getBallNumber(ball) + " sunk, ";
-            
+            self.gui.ballsSunk.innerHTML += self.getBallNumber(ball) + ", ";
+
             if(self.getMyBalls(self.getCurrentPlayer()).length == 0) {
                 self.getCurrentPlayer().ballSet = 3;
             }
