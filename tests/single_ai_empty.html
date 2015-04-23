@@ -1,0 +1,32 @@
+<html>
+<head>
+    <title>BilliardBot</title>
+    <script src="../js/third_party/require.js"></script>
+    <script src="config.js"></script>
+    <link rel="stylesheet" type="text/css" href="../assets/style.css">
+    <style>
+        body {
+            background: #999;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matter-canvas"></canvas>
+    <h1>Current Player: <span id="current-player"></span></h1>
+    <h1 id="balls-sunk">Balls Sunk: </h1>
+
+    <script>
+        requirejs(['common', 'gui', 'ai', 'utils', '../../tests/testutils'],
+            function(common, gui, ai, utils, testUtils) {
+                "use strict";
+
+                // Overwrite prototypes as necessary here.
+                gui.prototype.setupRack = function() {
+                    // Intentionally left blank.
+                };
+
+                testUtils.startTestGame(common.GameType.SINGLE_AI);
+            });
+    </script>
+</body>
+</html>

@@ -1,12 +1,53 @@
 <html>
 <head>
     <title>BilliardBot</title>
-    <script src="js/third_party/require.js" data-main="js/loader"></script>
+    <script src="js/third_party/require.js"></script>
+    <script src="js/config.js"></script>
     <link rel="stylesheet" type="text/css" href="assets/style.css">
 </head>
 <body>
     <canvas id="matter-canvas"></canvas>
     <h1>Current Player: <span id="current-player"></span></h1>
     <h1 id="balls-sunk">Balls Sunk: </h1>
+
+    <select id="gameSelect" disabled="true">
+        <option value="Loading..." selected>Loading&hellip;</option>
+    </select>
+
+    <script>
+        requirejs(['common', 'utils'], function(common, utils) {
+            "use strict";
+
+            window.billiardbot = common;
+            var canvas = document.getElementById('matter-canvas');
+
+            // Populate the list of game types.
+            var gameSelect = document.getElementById('gameSelect');
+            utils.removeOptions(gameSelect);
+            for (var gameType in common.GameType) {
+                if (common.GameType.hasOwnProperty(gameType) && gameType != 'TESTS') {
+                    utils.addOption(gameSelect, gameType, common.GameType[gameType]);
+                }
+            }
+            utils.addOption(gameSelect, 'TESTS', 'TESTS');
+            gameSelect.disabled = false;
+
+            // Listen for changes.
+            var onGameSelect = function() {
+                var gameType = common.GameType[gameSelect.value];
+                if (gameType == 'TESTS') {
+                    window.location.href = document.location.href.substring(0, 
+                        document.location.href.lastIndexOf('/')) + '/tests';
+                } else {
+                    common.startGame(canvas, common.GameType[gameSelect.value]);
+                }
+            };
+            gameSelect.addEventListener('change', onGameSelect, false);
+
+            // Start a game.
+            gameSelect.value = 'SINGLE_AI';
+            onGameSelect();
+        });
+    </script>
 </body>
 </html>

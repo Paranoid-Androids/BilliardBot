@@ -9,8 +9,3 @@ requirejs.config({
         }
     }
 });
-
-requirejs(['common'], function(common) {
-    common.startGame(document.getElementById('matter-canvas'),
-        common.GameType.SINGLE_AI);
-});
