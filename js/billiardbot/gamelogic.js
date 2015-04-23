@@ -341,7 +341,7 @@ define(function(require) {
     GameLogic.prototype.playerWin = function() {
         var player = this.getCurrentPlayer();
         console.log("Player: " + this.currentPlayer + " Won!");
-        this.gui.endGame(this.currentPlayer, getNumberOfPlayers() > 1);
+        this.gui.endGame(this.currentPlayer, this.getNumberOfPlayers() > 1);
     }
 
     return GameLogic;
