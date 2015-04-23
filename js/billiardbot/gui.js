@@ -202,7 +202,7 @@ define(function(require) {
 
         // TODO: Temporary fix: show balls sunk as text.
         this.ballsSunk = document.getElementById("balls-sunk");
-        this.currentPlayer = document.getElementById("current-player");
+        this.gameStatus = document.getElementById("game-status");
 
         // Add some some walls to the world.
         // Note that these values were carefully calculated by first hiding all the pockets and
@@ -244,6 +244,9 @@ define(function(require) {
         this.placeCue();
 
         Events.on(this.engine, 'afterTick', function(event) {
+            if (self.ballsHalted) {
+                self.setBallsHalted(false);
+            }
             if (!self.waitingForShot) {
                 // Remove balls that fall in pockets.
                 self.removePocketedBalls();
@@ -251,6 +254,7 @@ define(function(require) {
                 // Detect when the balls have stopped moving.
                 var totalSpeed = self.calculateMaximumBallSpeed();
                 if (totalSpeed >= 0 && totalSpeed < GUI.SPEED_THRESHOLD) {
+                    self.setBallsHalted(true);
                     self.waitingForShot = true;
                     if (self.listener) {
                         self.listener.onBallsStopped();
@@ -282,6 +286,26 @@ define(function(require) {
     GUI.prototype.takeShot2 = function(ball, position, forceVector) {
         Body.applyForce(ball, position, forceVector);
         this.waitingForShot = false;
+    }
+
+    GUI.prototype.setBallsHalted = function(halt) {
+        this.ballsHalted = halt;
+        this.getBallsOnTable().forEach(function(ball) {
+            if (halt) {
+                ball.oldFrictionAir = ball.frictionAir;
+                ball.frictionAir = 1;
+                ball.positionPrev.x = ball.position.x;
+                ball.positionPrev.y = ball.position.y;
+                ball.anglePrev = ball.angle;
+                ball.angularVelocity = 0;
+                ball.speed = 0;
+                ball.angularSpeed = 0;
+                ball.motion = 0;
+            } else {
+                ball.frictionAir = ball.oldFrictionAir;
+                delete ball.oldFrictionAir;
+            }
+        });
     }
 
     /**
@@ -331,7 +355,15 @@ define(function(require) {
      * @param {number} player The active player.
      */
     GUI.prototype.updateCurrentPlayer = function(player) {
-        this.currentPlayer.innerHTML = player;
+        this.updateGameStatus(player + 1);
+    }
+
+    /**
+     * Updates the page with the status of the game.
+     * @param {string} gameStatus The game status.
+     */
+    GUI.prototype.updateGameStatus = function(gameStatus) {
+        this.gameStatus.innerHTML = gameStatus;
     }
 
     GUI.prototype.getBallsOnTable = function() {
@@ -424,9 +456,12 @@ define(function(require) {
         });
     };
 
-    GUI.prototype.endGame = function() {
+    GUI.prototype.endGame = function(winningPlayer, isMultiplayer) {
         console.log("end game");
         Runner.stop(this.engine);
+        this.updateGameStatus(isMultiplayer
+            ? ("Player " + (winningPlayer + 1) + " won!")
+            : (winningPlayer == 0 ? "You won!" : "You lost."));
     }
 
     return GUI;

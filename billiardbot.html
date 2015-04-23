@@ -7,12 +7,13 @@
 </head>
 <body>
     <canvas id="matter-canvas"></canvas>
-    <h1>Current Player: <span id="current-player"></span></h1>
+    <h1 id="game-status">Loading...</h1>
     <h1 id="balls-sunk">Balls Sunk: </h1>
 
     <select id="gameSelect" disabled="true">
         <option value="Loading..." selected>Loading&hellip;</option>
     </select>
+    <input type="button" id="gameRestart"></input>
 
     <script>
         requirejs(['common', 'utils'], function(common, utils) {

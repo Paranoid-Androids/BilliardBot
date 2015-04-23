@@ -23,5 +23,20 @@ define(function(require) {
         Matter.World.add(gui.engine.world, ball);
     };
 
+    /**
+     * Adds a selector to the body when the game finishes so that 'run.js' knows
+     * when the game ends.
+     */
+    TestUtils.notifyOnEndGame = function(GUI) {
+        var oldEndGame = GUI.prototype.endGame;
+        GUI.prototype.endGame = function(winningPlayer, isMultiplayer) {
+            oldEndGame();
+            notifier = document.createElement('div');
+            notifier.style.display = 'none';
+            notifier.id = 'gameEnded';
+            document.body.appendChild(notifier);
+        };
+    }
+
     return TestUtils;
 });

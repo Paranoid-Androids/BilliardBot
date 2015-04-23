@@ -251,6 +251,10 @@ define(function(require) {
         return this.players[this.currentPlayer];
     }
 
+    GameLogic.prototype.getNumberOfPlayers = function() {
+        return this.players.length;
+    }
+
     GameLogic.prototype.assignBalls = function(player, setIndex) {
         player.ballSet = setIndex;
         var otherIndex = (setIndex + 1) % GameLogic.BALL_SETS.length;
@@ -304,19 +308,19 @@ define(function(require) {
         else {
             console.log("Player: " + this.currentPlayer + " lost!");
         }
-        this.gui.endGame();
+        this.gui.endGame(this.currentPlayer);
     }
 
     GameLogic.prototype.playerLose = function() {
         var player = this.getCurrentPlayer();
         console.log("Player: " + this.currentPlayer + " lost!");
-        this.gui.endGame();
+        this.gui.endGame(this.currentPlayer, getNumberOfPlayers() > 1);
     }
 
     GameLogic.prototype.playerWin = function() {
         var player = this.getCurrentPlayer();
         console.log("Player: " + this.currentPlayer + " Won!");
-        this.gui.endGame();
+        this.gui.endGame(this.currentPlayer, getNumberOfPlayers() > 1);
     }
 
     return GameLogic;

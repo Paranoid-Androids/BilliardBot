@@ -2,7 +2,7 @@
 <head>
     <title>BilliardBot</title>
     <script src="../js/third_party/require.js"></script>
-    <script src="config.js"></script>
+    <script src="js/config.js"></script>
     <link rel="stylesheet" type="text/css" href="../assets/style.css">
     <style>
         body {
@@ -11,12 +11,12 @@
     </style>
 </head>
 <body>
-    <h1>Current Player: <span id="current-player"></span></h1>
+    <h1 id="game-status">Loading...</h1>
     <canvas id="matter-canvas"></canvas>
     <h1 id="balls-sunk">Balls Sunk: </h1>
 
     <script>
-        requirejs(['common', 'gamelogic', 'gui', 'ai', 'utils', '../../tests/testutils',
+        requirejs(['common', 'gamelogic', 'gui', 'ai', 'utils', 'test/testutils',
             'third_party/matter'],
             function(Common, GameLogic, GUI, AI, Utils, TestUtils, Matter) {
                 "use strict";
@@ -29,6 +29,7 @@
                 };
 
                 TestUtils.startTestGame(Common.GameType.SINGLE_AI);
+                TestUtils.notifyOnEndGame(GUI);
             });
     </script>
 </body>
