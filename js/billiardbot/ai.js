@@ -5,6 +5,7 @@ define(function(require) {
     var Vector = Matter.Vector;
     var Query = Matter.Query;
     var GUI = require('gui');
+    var GameLogic = require('gamelogic');
 
     /**
      * The break vector.
@@ -26,19 +27,20 @@ define(function(require) {
         }
         else {
             
-            var startNode = {balls: this.gameLogic.getMyBalls(this), cue: this.gameLogic.getCue()};
-            var bestShot = this.expectimax(startNode, 1, 0);
+            var startNode = {balls: this.gameLogic.getBallsOnTable(), cue: this.gameLogic.getCue(), ballSet: this.ballSet};
+            var bestShot = this.expectimax(startNode, 2, 0);
             var force = bestShot.action.force;
             this.gameLogic.takeShot(force);
         }
     }
 
-    AI.prototype.legalActions = function(balls, cue) {
+    AI.prototype.legalActions = function(balls, cue, ballSet) {
         var self = this;
         var pockets = this.gameLogic.getPockets();
         var actions = [];
+        var legalBalls = this.getBallsBySet(balls, ballSet);
 
-        balls.forEach(function(ball) {
+        legalBalls.forEach(function(ball) {
             var bestTheta = Math.PI / 2;
             var bestShot;
             var totalObstacles = balls.length; //set to be the number of balls as an upper bound
@@ -92,6 +94,27 @@ define(function(require) {
         return actions;
     }
 
+    AI.prototype.getBallsBySet = function(balls, ballSet) {
+        var self = this;
+        var currentBallSet;
+        if (ballSet == undefined) {
+            currentBallSet = [].concat.apply([], GameLogic.BALL_SETS.slice().splice(0, 2));
+        }
+        else {
+            currentBallSet = GameLogic.BALL_SETS[ballSet];
+        }
+
+        var validBalls = []
+
+        balls.forEach(function(ball) {
+            if (currentBallSet.indexOf(self.gameLogic.getBallNumber(ball)) != -1) {
+                validBalls.push(ball);
+            }
+        });
+
+        return validBalls;
+    }
+
     AI.prototype.minVtoPocket = function(ball, pocket) {
         var frictionConstant = ball.frictionAir;
 
@@ -128,7 +151,7 @@ define(function(require) {
         var distance = Math.sqrt(veloctiyCueBall) / (2 * ball.frictionAir);
         var distanceInX = (ball.position.x + distance * Math.cos(theta));
         var distanceInY = (ball.position.y + distance * Math.sin(theta));
-        var cueBallPosition = {x: distanceInX , y:distanceInY};
+        var cueBallPosition = {position:{x: distanceInX , y:distanceInY}};
         return cueBallPosition;
     }
 
@@ -175,9 +198,9 @@ define(function(require) {
             // accumulator += probability(successor) * expectimax(successor)
             var bestScore = -Infinity;
             var bestAction;
-            this.legalActions(node.balls, node.cue).forEach(function(action) {
+            this.legalActions(node.balls, node.cue, node.ballSet).forEach(function(action) {
                 var currentScore = 0;
-                var successors = self.generateSuccessors(node.balls, node.cue, agent, action);
+                var successors = self.generateSuccessors(node, agent, action);
                 successors.forEach(function(successor) {
                     currentScore += successor.probability * (self.expectimax(successor.node, depth - 1, successor.agent).score);
                 })
@@ -188,43 +211,26 @@ define(function(require) {
             });
 
             return {score: bestScore, action: bestAction};
-
-
-
-//             return this.legalActions[agent].reduce(function(m, k) {
-//                 // TODO: memoize for performance.
-//                 successor = self.generateSuccessor(agent, k);
-//                 score = self.expectimax(successor, depth, (agent + 1) % self.totalAgents());
-//                 if (m == null || score > m.score) {
-//                     return {score: score, successor: successor}
-//                 } else {
-//                     return m;
-//                 }
-
-//             });
-// //            spawnChildren(node, depth);
         } else {
-            // actions = node.getLegalActions[agent];
-
-            // return actions.reduce(function(m, k) {
-            //     // TODO: memoize for performance.
-            //     successor = self.generateSuccessor(agent, k);
-            //     if (agent == self.totalAgents() - 1) {
-            //         score = self.expectimax(successor, depth - 1, (agent + 1) % self.totalAgents());
-            //     } else {
-            //         score = self.expectimax(successor, depth, (agent + 1) % self.totalAgents());
-            //     }
-
-            //     if (m == null || score > m.score) {
-            //         return {score: score, successor: successor}
-            //     } else {
-            //         return m;
-            //     }
-            // });
+            var bestScore = Infinity;
+            var bestAction;
+            this.legalActions(node.balls, node.cue, node.ballSet).forEach(function(action) {
+                var currentScore = 0;
+                var successors = self.generateSuccessors(node, agent, action);
+                successors.forEach(function(successor) {
+                    currentScore += successor.probability * (self.expectimax(successor.node, depth - 1, successor.agent).score);
+                })
+                if (currentScore <= bestScore) {
+                    bestScore = currentScore;
+                    bestAction = action;
+                }
+            });
+            
+            return {score: bestScore, action: bestAction};
         }
     }
 
-    AI.prototype.generateSuccessors = function(balls, cue, agent, action) {
+    AI.prototype.generateSuccessors = function(node, agent, action) {
         var self = this;
         var successors = [];
         var probability = 1;
@@ -233,34 +239,56 @@ define(function(require) {
         if (action.obstacles == 0) {
             var successProbability = 1 - (action.deltaTheta / (Math.PI / 2));
             probability -= successProbability;
-            var newBalls = balls.slice();
+            var newBalls = node.balls.slice();
             var ballIndex = newBalls.indexOf(action.ball);
             if (ballIndex != -1) {
                 newBalls.splice(ballIndex, 1);
             }
+
+            var ballSet = node.ballSet;
+            if(node.ballSet === undefined) {
+                ballSet = this.gameLogic.getSetIndexForBall(action.ball);
+            }
+
             successors.push({
                 probability: successProbability,
                 agent: agent,
                 node: {
                     balls: newBalls,
-                    cue: action.newCue
+                    cue: action.newCue,
+                    ballSet: ballSet
                 }
             });
         }
 
         // failure successor
-        var newBalls = balls.slice();
+        var newBalls = node.balls.slice();
+        var ballSet = node.ballSet;
+        if (ballSet != undefined) {
+            ballSet = (ballSet + 1) % (GameLogic.BALL_SETS.length - 1);
+        }
         successors.push({
             probability: probability,
             agent: (agent + 1) % self.totalAgents(),
             node: {
                 balls: newBalls,
-                cue: action.newCue
+                cue: action.newCue,
+                ballSet: ballSet
             }
         });
 
         return successors;
 
+    }
+
+    AI.prototype.isEndState = function(node) {
+        var ballLabel8 = GameLogic.BALL_LABEL_PREFIX + "8";
+        node.balls.forEach(function(ball) {
+            if (ball.label == ballLabel8) {
+                return false;
+            }
+        });
+        return true;
     }
 
     /**
