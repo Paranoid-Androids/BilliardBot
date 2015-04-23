@@ -204,7 +204,6 @@ define(function(require) {
         // TODO: Temporary fix: show balls sunk as text.
         this.ballsSunk = document.getElementById("balls-sunk");
         this.gameStatus = document.getElementById("game-status");
-        this.playerTurn = document.getElementById("player-turn");
         this.stripesSunk = document.getElementById("stripes-sunk");
         this.solidsSunk = document.getElementById("solids-sunk");
 
@@ -359,7 +358,7 @@ define(function(require) {
      * @param {number} player The active player.
      */
     GUI.prototype.updateCurrentPlayer = function(player) {
-        this.updateGameStatus(player + 1);
+        this.updateGameStatus('Player ' + (player + 1) + '\'s turn');
     }
 
     /**

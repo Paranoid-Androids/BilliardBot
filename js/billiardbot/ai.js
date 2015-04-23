@@ -26,7 +26,6 @@ define(function(require) {
             this.gameLogic.takeShot(AI.BREAK_VECTOR);
         }
         else {
-            
             var startNode = {balls: this.gameLogic.getBallsOnTable(), cue: this.gameLogic.getCue(), ballSet: this.ballSet};
             var bestShot = this.expectimax(startNode, 2, 0);
             var force = bestShot.action.force;

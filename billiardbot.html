@@ -6,12 +6,11 @@
     <link rel="stylesheet" type="text/css" href="assets/style.css">
 </head>
 <body>
-    <canvas id="matter-canvas"></canvas>
     <h1 id="game-status">Loading...</h1>
-    <h1 id="player-turn">Player Turn: 1</h1>
-    <h1 id="stripes-sunk">Stripes Sunk: 0</h1>
-    <h1 id="solids-sunk">Solids Sunk: 0</h1>
-    <h1 id="balls-sunk">Balls Sunk: </h1>
+    <canvas id="matter-canvas"></canvas>
+    <h2 id="stripes-sunk">Stripes Sunk: 0</h1>
+    <h2 id="solids-sunk">Solids Sunk: 0</h1>
+    <h2 id="balls-sunk">Balls Sunk: </h1>
 
     <select id="gameSelect" disabled="true">
         <option value="Loading..." selected>Loading&hellip;</option>
@@ -24,9 +23,10 @@
 
             window.billiardbot = common;
             var canvas = document.getElementById('matter-canvas');
+            var gameSelect = document.getElementById('gameSelect');
+            var gameRestart = document.getElementById('gameRestart');
 
             // Populate the list of game types.
-            var gameSelect = document.getElementById('gameSelect');
             utils.removeOptions(gameSelect);
             for (var gameType in common.GameType) {
                 if (common.GameType.hasOwnProperty(gameType) && gameType != 'TESTS') {
@@ -47,6 +47,7 @@
                 }
             };
             gameSelect.addEventListener('change', onGameSelect, false);
+            gameRestart.addEventListener('change', onGameSelect, false);
 
             // Start a game.
             gameSelect.value = 'DOUBLE_AI';
