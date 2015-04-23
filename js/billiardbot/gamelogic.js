@@ -151,7 +151,7 @@ define(function(require) {
         if (ballNum == 0) {
             this.scratched = 1;
         }
-        else if (ballNum == SPECIAL_BALL) {
+        else if (ballNum == this.SPECIAL_BALL) {
             console.log("sunk "+this.SPECIAL_BALL+" ball!");
             this.specialSink = 1;
         }

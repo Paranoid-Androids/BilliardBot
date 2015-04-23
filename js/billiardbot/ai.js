@@ -111,7 +111,7 @@ define(function(require) {
 
         var force = {x: forceX, y: forceY};
         force = Vector.mult(Vector.normalise(force), 0.01);
-        return {cueContact: contactPoint, force: force, theta: theta, cueFinal: this.getCueBallPosition( cue,ball,theta,velocityMagnitude )};
+        return {cueContact: contactPoint, force: force, theta: theta, cueFinal: this.getCueBallPosition( cue, ball, theta, velocityMagnitude )};
     }
     
     AI.prototype.getCueBallPosition = function(cue,ball,theta,velocityMagnitude){
@@ -152,7 +152,7 @@ define(function(require) {
         return 2;
     }
 
-    // node = {balls, cue, shot, children, score}
+    // node = {balls, cue, target, shot, children, score}
     AI.prototype.expectimax = function(node, depth, agent) {
         var self = this;
 
@@ -200,7 +200,6 @@ define(function(require) {
      */ 
     AI.prototype.basicEvaluationFunction = function(node) {
         var score = 0;
-
         // Assuming agent #0 is this agent.
         var ballSets = node.balls;
         for (var i = 0; i < node.balls.length; i++) {
