@@ -123,14 +123,7 @@ define(function(require) {
     /** @override */
     GameLogic.prototype.onBallsStopped = function() {
         if (this.specialSink){
-
-            if(this.scratched) {
-                this.playerLose();
-                return;
-            } else {
-                this.playerWin();
-                return;
-            }
+            this.onSpecial();
         } else if (this.scratched){
             this.onScratch();
         }
@@ -164,6 +157,21 @@ define(function(require) {
         // console.log("No balls to return to player " + self.currentPlayer);
         return;
     }
+
+    GameLogic.prototype.onSpecial = function() {
+        if (this.scratched == 1) {
+            this.playerLose();
+        }
+        else {
+            if(this.getCurrentPlayer().ballSet == this.LOCKED_SET) {
+                this.playerWin();
+            } else {
+                this.playerLose();
+            }
+        }
+    }
+
+
 
     GameLogic.prototype.ballSunk = function(ball) {
         var self = this;
@@ -357,13 +365,17 @@ define(function(require) {
     }
 
     GameLogic.prototype.playerLose = function() {
-        var player = this.getCurrentPlayer();
-        console.log("Player: " + this.currentPlayer + " lost!");
-        this.gui.endGame(this.currentPlayer, getNumberOfPlayers() > 1);
+        console.log("Player: " + this.currentPlayer + " Lost!");
+        // if single player, tell it that another player won
+        if (this.getNumberOfPlayers() > 1) {
+            this.incrementPlayer();
+            this.gui.endGame(this.currentPlayer, 1);
+        } else{
+            this.gui.endGame(-1, 0);
+        }
     }
 
     GameLogic.prototype.playerWin = function() {
-        var player = this.getCurrentPlayer();
         console.log("Player: " + this.currentPlayer + " Won!");
         this.gui.endGame(this.currentPlayer, this.getNumberOfPlayers() > 1);
     }
