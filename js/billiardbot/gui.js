@@ -23,7 +23,7 @@ define(function(require) {
      * The simulation speed of the engine. 1.0 is normal; higher values make
      * the game faster.
      */
-    GUI.TIME_SCALE = 0.7;
+    GUI.TIME_SCALE = 0.8;
 
     /**
      * The width of the table, in meters.
@@ -130,13 +130,14 @@ define(function(require) {
         }
     }
 
+    var pocketTargetOffset = (Math.cos(Math.PI / 4) * GUI.POCKET_RADIUS_CORNER) - 5;
     GUI.POCKETS = [
-        {x: 0, y: 0, radius: GUI.POCKET_RADIUS_CORNER},
-        {x: GUI.WIDTH, y: 0, radius: GUI.POCKET_RADIUS_CORNER},
-        {x: 0, y: GUI.HEIGHT, radius: GUI.POCKET_RADIUS_CORNER},
-        {x: GUI.WIDTH, y: GUI.HEIGHT, radius: GUI.POCKET_RADIUS_CORNER},
-        {x: GUI.WIDTH / 2, y: 0, radius: GUI.POCKET_RADIUS_SIDE},
-        {x: GUI.WIDTH / 2, y: GUI.HEIGHT, radius: GUI.POCKET_RADIUS_SIDE},
+        {x: 0, y: 0, radius: GUI.POCKET_RADIUS_CORNER, target: {x: pocketTargetOffset, y: pocketTargetOffset}},
+        {x: GUI.WIDTH, y: 0, radius: GUI.POCKET_RADIUS_CORNER, target: {x: GUI.WIDTH - pocketTargetOffset, y: pocketTargetOffset}},
+        {x: 0, y: GUI.HEIGHT, radius: GUI.POCKET_RADIUS_CORNER, target: {x: pocketTargetOffset, y: GUI.HEIGHT - pocketTargetOffset}},
+        {x: GUI.WIDTH, y: GUI.HEIGHT, radius: GUI.POCKET_RADIUS_CORNER, target: {x: GUI.WIDTH - pocketTargetOffset, y: GUI.HEIGHT - pocketTargetOffset}},
+        {x: GUI.WIDTH / 2, y: 0, radius: GUI.POCKET_RADIUS_SIDE, target: {x: GUI.WIDTH / 2, y: pocketTargetOffset}},
+        {x: GUI.WIDTH / 2, y: GUI.HEIGHT, radius: GUI.POCKET_RADIUS_SIDE, target: {x: GUI.WIDTH / 2, y: GUI.HEIGHT - pocketTargetOffset}},
     ]
 
     /**
@@ -416,6 +417,8 @@ define(function(require) {
 
                 var ball = this.createBall({x:ball_x, y:currentY});
                 ball.render.fillStyle = GameLogic.BALL_COLORS[ballList[currentBall] - 1];
+                ball.render.strokeStyle = GameLogic.BALL_OUTLINES[ballList[currentBall] - 1];
+                ball.render.lineWidth = 1.8;
                 ball.label = GameLogic.BALL_LABEL_PREFIX + ballList[currentBall];
 
                 World.add(this.engine.world, ball);

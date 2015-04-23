@@ -43,7 +43,7 @@ define(function(require) {
             case common.GameType.SINGLE_AI:
                 var ai = new AI(gameLogic);
                 break;
-            case common.GameType.SINGLE_AI:
+            case common.GameType.DOUBLE_AI:
                 var ai0 = new AI(gameLogic);
                 var ai1 = new AI(gameLogic);
                 break;

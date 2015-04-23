@@ -27,15 +27,26 @@ define(function(require) {
         this.initialBreak = true;
         this.scratched = 0;
         this.SPECIAL_BALL = 8;
+        this.LOCKED_SET = 2;
     }
 
     /**
      * The list of colors for each ball.
      * @const {Array.<string>}
      */
+    // GameLogic.BALL_COLORS = ["yellow", "blue", "red", "purple", "orange", "green", "maroon",
+    //     "black",
+    //     "LemonChiffon", "SkyBlue", "Tomato", "MediumPurple", "LightSalmon", "LightGreen", "IndianRed"
+    // ];        
+
     GameLogic.BALL_COLORS = ["yellow", "blue", "red", "purple", "orange", "green", "maroon",
         "black",
-        "LemonChiffon", "SkyBlue", "Tomato", "MediumPurple", "LightSalmon", "LightGreen", "IndianRed"
+        "white", "white", "white", "white", "white", "white", "white"
+    ];    
+
+    GameLogic.BALL_OUTLINES = ["black", "black", "black", "black", "black", "black", "black",
+        "black",
+        "yellow", "blue", "red", "purple", "orange", "green", "maroon"
     ];
 
     /**
@@ -103,45 +114,47 @@ define(function(require) {
 
     /** @override */
     GameLogic.prototype.onBallsStopped = function() {
-        if (this.scratched && this.specialSink) {
-            this.playerLose();
+        if (this.specialSink){
+
+            if(this.scratched) {
+                this.playerLose();
+                return;
+            } else {
+                this.playerWin();
+                return;
+            }
             return;
-        }
-        else if (this.scratched){
+        } else if (this.scratched){
             this.onScratch();
         }
-        else if (this.specialSink){
-            this.playerWin();
-            return;
-        }
+
         this.scratched = 0;
         this.specialSink = 0;
         this.takeNextTurn();
+
     }
 
     GameLogic.prototype.onScratch = function() {
         //TODO we should ask the AI agent to place the cue ball in a smart location
         // for now, we'll just place it back in the same spot that we broke
         this.gui.placeCue();
-        var self = this;
-        // return a ball belonging to the scratcher
-        var returnPlayersBall = this.currentPlayer;
+        self.goAgain = false;
+        console.log("Player " + this.currentPlayer + " scratched!");
 
-        console.log("Player " + returnPlayersBall + " scratched!");
-
-        self.ballsSunk.forEach(function(ball){
-            var ballNum = self.getBallNumber(ball);
-            self.BALL_SETS[self.getCurrentPlayer().ballSet].forEach(function(tryNum){
-                if (ballNum == tryNum) {
-                    gui.placeBall(ball, {x: 3 * GUI.WIDTH / 4, y: GUI.HEIGHT / 2});
-                    self.ballsSunk.splice(self.ballsSunk.indexOf(ball), 1);
-                    console.log("Returning " + ballNum + " to player " + returnPlayersBall);
-                    self.gui.ballsSunk.innerHTML += self.getBallNumber(ball) + " replaced, ";
-                    return;
-                }
-            });
-        });
-        console.log("No balls to return to player " + returnPlayersBall);
+        // var self = this;
+        // self.ballsSunk.forEach(function(ball){
+        //     var ballNum = self.getBallNumber(ball);
+        //     self.BALL_SETS[self.getCurrentPlayer().ballSet].forEach(function(tryNum){
+        //         if (ballNum == tryNum) {
+        //             gui.placeBall(ball, {x: 3 * GUI.WIDTH / 4, y: GUI.HEIGHT / 2});
+        //             self.ballsSunk.splice(self.ballsSunk.indexOf(ball), 1);
+        //             console.log("Returning " + ballNum + " to player " + self.currentPlayer);
+        //             self.gui.ballsSunk.innerHTML += self.getBallNumber(ball) + " replaced, ";
+        //             return;
+        //         }
+        //     });
+        // });
+        // console.log("No balls to return to player " + self.currentPlayer);
         return;
     }
 
@@ -169,21 +182,30 @@ define(function(require) {
                     if (player.ballSet == setIndex){
                         console.log("sunk my ball!");
                         self.goAgain = true;
+                        player.score += 1;
                     }
                     else {
                         console.log("sunk opponent ball!");
+                        var player2 = player;
+                        this.players.forEach(function(p){
+                            if(p.ballSet == setIndex) {
+                                player2 = p;
+                            }
+                        });
+                        player2.score += 1;
                     }
                     set.splice(set.indexOf(ballNum), 1);
                 }
             });
 
             self.ballsSunk.push(ball);
-            self.gui.ballsSunk.innerHTML += self.getBallNumber(ball) + " sunk, ";
-            
+            self.gui.ballsSunk.innerHTML += self.getBallNumber(ball) + ", ";
+
             if(self.getMyBalls(self.getCurrentPlayer()).length == 0) {
-                self.getCurrentPlayer().ballSet = 3;
+                self.getCurrentPlayer().ballSet = this.LOCKED_SET;
             }
         }
+        console.log(this.players);
     }
 
     /**
@@ -204,6 +226,7 @@ define(function(require) {
      * registers an AI agent with the system
      */
     GameLogic.prototype.registerPlayer = function(player) {
+        player.score = 0;
         this.players.push(player);
     }
 
@@ -257,9 +280,7 @@ define(function(require) {
 
     GameLogic.prototype.assignBalls = function(player, setIndex) {
         player.ballSet = setIndex;
-        var otherIndex = (setIndex + 1) % GameLogic.BALL_SETS.length;
-        console.log(setIndex);
-        console.log(otherIndex);
+        var otherIndex = (setIndex + 1) % (GameLogic.BALL_SETS.length - 1);
         for (var i = 0; i < this.players.length; i++) {
             if (this.currentPlayer != i) {
                 this.players[i].ballSet = otherIndex;
