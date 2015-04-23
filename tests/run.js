@@ -1,28 +1,21 @@
 /**
- * Run "casperjs _run.js" to run all the tests in this folder.
+ * Run "casperjs test run.js" to run all the tests in this folder.
  * Note: install CasperJS v1.9.2.
  */
 
 var fs = require('fs');
-var casper = require('casper').create({
-    logLevel: 'debug'
-});
 
-// Set the timeout.
+// Config.
 var TIMEOUT = 60000;
+var SHOW_CONSOLE_LOG = false;
+var DONE_SELECTOR = '#gameEnded';
 
-// Handle JS errors.
-casper.once('page.error', function onError(msg, trace) {
-    // Workaround for GUI.endGame() causing some errors here.
-    if (!this.exists('#gameEnded')) {
-        this.die('Test error: ' + msg + '\n\n' + trace);
-    }
-});
-
-// Show log messages in the console.
-casper.on('remote.message', function(message) {
-    this.echo('[LOG]: ' + message);
-});
+// Show log messages in the console if needed.
+if (SHOW_CONSOLE_LOG) {
+    casper.on('remote.message', function(message) {
+        this.echo('[LOG]: ' + message);
+    });
+}
 
 // Find all the .html files in the tests directory.
 var files = fs.list(fs.workingDirectory);
@@ -34,28 +27,41 @@ files.forEach(function(file) {
 });
 
 // Run all the tests!
-casper.echo('Running ' + tests.length + ' tests with a timeout of '
-    + TIMEOUT / 1000 + ' s.\n');
-
-var runHtmlTest = function() {
-    var path = this.getCurrentUrl();
-    var filename = path.substring(path.lastIndexOf('/') + 1);
-    this.echo('Running ' + filename + '...');
-};
-
-var onTimeout = function() {
-    this.die('Test timed out.');
-};
+casper.echo('Running ' + tests.length + ' test' + (tests.length != 1 ? 's' : '') +
+    ' with a timeout of ' + TIMEOUT / 1000 + ' seconds.\n');
 
 var testIndex = 0;
 for (var i = 0; i < tests.length; i++) {
-    if (i == 0) {
-        casper.start(tests[i], runHtmlTest);
-        casper.waitForSelector('#gameEnded', null, onTimeout, TIMEOUT);
-    } else {
-        casper.thenOpen(tests[i], runHtmlTest);
-        casper.waitForSelector('#gameEnded', null, onTimeout, TIMEOUT);
-    }
-}
+    casper.test.begin(tests[i], 3, function suite(test) {
+        var errors = [];
+        casper.on('page.error', function onError(msg, trace) {
+            errors.push(msg + ': ' + trace);
+        });
 
-casper.run();
+        casper.start(tests[i]);
+
+        // Wait for either the game to end or an error to appear.
+        var timedOut = false;
+        casper.waitFor(
+            function check() {
+                return errors.length != 0 || this.exists(DONE_SELECTOR);
+            },
+            function gameEnded() {
+                test.assertEquals([]], []);
+                test.assertExists('#gameEnded');
+            },
+            function timedOut() {
+                timedOut = true;
+                test.assertEquals(errors, []);
+                test.assertExists('#gameEnded');
+            }, TIMEOUT);
+
+        casper.then(function() {
+            test.assertFalsy(timedOut);
+        });
+
+        casper.run(function() {
+            test.done();
+        });
+    });
+}
