@@ -138,7 +138,7 @@ define(function(require) {
         //TODO we should ask the AI agent to place the cue ball in a smart location
         // for now, we'll just place it back in the same spot that we broke
         this.gui.placeCue();
-        self.goAgain = false;
+        this.goAgain = false;
         console.log("Player " + this.currentPlayer + " scratched!");
 
         // var self = this;
