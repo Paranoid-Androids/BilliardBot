@@ -81,14 +81,16 @@ define(function(require) {
                     }
                 }
             });
-            actions.push({
-                ball: ball,
-                force: bestShot.force,
-                deltaTheta: bestTheta,
-                theta: bestShot.theta,
-                newCue: bestShot.cueFinal,
-                obstacles: totalObstacles
-            });
+            if (bestShot != undefined) {
+                actions.push({
+                    ball: ball,
+                    force: bestShot.force,
+                    deltaTheta: bestTheta,
+                    theta: bestShot.theta,
+                    newCue: bestShot.cueFinal,
+                    obstacles: totalObstacles
+                });
+            }
         });
 
         return actions;
